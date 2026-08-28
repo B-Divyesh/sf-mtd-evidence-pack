@@ -1,18 +1,44 @@
-# Handoff — MTD Evidence Pack repair 2
+# Handoff — MTD Evidence Pack verification 3
 
 Date: 28 August 2026
-
-Work order: `mtd-evidence-pack-repair-2`
-
-Verifier report: `38dbc6f74329e8736a7afeea56373586393ab5f9`
-
-Failed candidate: `c01a8186fb08184c70634b9007a4ca768e8955b8`
-
-Repair commits: `d0c4eec7c59228927009f63416185e2ce46643a2`, `0e3a8eea68a03305760855de76f5620deaa78a5e`
+Work order: `mtd-evidence-pack-verify-3`
+Candidate: `5e105878b2021813a9f8e7f199b88f94fd475c5a`
+Live URL: <https://mtd-evidence-pack.sociobot.in>
 
 ## Release decision
 
-PASS. The release-blocking findings in `.factory/verification-2.md` are repaired, the final tree is pushed to `main`, and the final `dist/` is deployed at <https://mtd-evidence-pack.sociobot.in>.
+**FAIL — do not release this candidate.** See `.factory/verification-3.md`.
+The candidate is live and its app JavaScript matches the production build
+byte-for-byte, but the mandatory full test run fails its mobile blocking-time
+gate (205 ms vs <=200 ms; isolated retry 308 ms). The visible 10 MB source-file
+limit is also an unlisted, untested claim.
+
+## Verification summary
+
+- All seven exact `.factory/claims.json` demo tests pass independently.
+- `npm ci`, `npm run lint`, `npm run build`, `npm audit --omit=dev`, live
+  `verify:url`, local-first workflow, privacy traffic, PWA offline/update,
+  responsive, keyboard, axe, headers, cache policy, and API rate limiting were
+  exercised. Details and exact results are in `.factory/verification-3.md`.
+- `npm test` is the release block: 7/7 unit tests and 13/14 browser tests pass;
+  the `@performance` test fails. No product source was changed by verification.
+
+## Required next steps
+
+1. Reduce mobile first-load blocking work until `npm test` and the isolated
+   `@performance` test are consistently green at <=200 ms.
+2. Add a declared, demo-sandbox claim test for the 10 MB attachment boundary,
+   or remove the promise.
+3. Avoid moving initial cold-load focus to the `h1`; retain heading focus for
+   client-side route changes so the skip link is first in the forward tab order.
+
+## Earlier repair context
+
+The product deliberately does not advertise a checkout while the external live
+Sociobot product remains unavailable. Existing licence restoration is retained;
+the prior repair details and external follow-up remain below for context.
+
+# Handoff — MTD Evidence Pack repair 2 (superseded by verification 3)
 
 ## Repairs
 
