@@ -14,6 +14,7 @@ let loaded = false;
 let licensed = false;
 let statusMessage = "";
 let errorMessage = "";
+let licenseNotice = "";
 let shouldScrollTop = false;
 
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
@@ -77,7 +78,7 @@ function landingPage(): string {
   </section>
   <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes.</p></div></li></ol></section>
   <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">A boundary, kept clear</p><h2 id="limits-title">This prepares records. It does not file them.</h2></div><ul><li>No HMRC sign-in or credentials</li><li>No tax calculation or advice</li><li>No bank connection</li><li>No claim of legal certification</li></ul><p>Use compatible filing software or an accountant for submission. Confirm checklist changes with them.</p></section>
-  <section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">One-time supported edition</p><h2 id="price-title">Keep the core pack free</h2><p>Import records, check the quarter, and export the encrypted pack without paying.</p></div><div class="price-ticket"><p class="price"><span>£</span>24</p><p>One payment adds saved cover notes and custom checklist items.</p><a class="button secondary" href="${checkoutUrl()}">Buy the supported edition</a><details><summary>Have a licence?</summary><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit">Verify licence</button></form></details><p class="fine-print">Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></div></section>`, "");
+  <section class="pricing" aria-labelledby="price-title"><div><p class="eyebrow">One-time supported edition</p><h2 id="price-title">Keep the core pack free</h2><p>Import records, check the quarter, and export the encrypted pack without paying.</p></div><div class="price-ticket"><p class="price"><span>£</span>24</p><p>One payment adds saved cover notes and custom checklist items.</p><a class="button secondary" href="${checkoutUrl()}">Buy the supported edition</a><details><summary>Have a licence?</summary><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></details><p class="fine-print">Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></div></section>`, "");
 }
 
 function overview(workspace: Workspace): string {
@@ -94,7 +95,7 @@ function workspacePage(): string {
   const docs = workspace.documents.length ? `<ul class="document-list">${workspace.documents.map(document => `<li><span class="file-mark" aria-hidden="true"></span><span><strong>${escapeHtml(document.name)}</strong><small>${Math.max(1, Math.round(document.size / 1024))} KB</small></span><button class="icon-button" type="button" data-remove-document="${escapeHtml(document.id)}" aria-label="Remove ${escapeHtml(document.name)}">×</button></li>`).join("")}</ul>` : `<div class="empty-state"><strong>No source files attached.</strong><p>Add statements, invoices, receipts, or a document index.</p></div>`;
   const checks = workspace.checklist.map(item => `<li><label><input type="checkbox" data-check="${escapeHtml(item.id)}" ${item.done ? "checked" : ""}><span class="check-box" aria-hidden="true"></span><span>${escapeHtml(item.label)}${item.custom ? " <small>Custom</small>" : ""}</span></label>${item.custom ? `<button type="button" class="icon-button" data-remove-check="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.label)}">×</button>` : ""}</li>`).join("");
   const gapList = readiness.gaps.length ? `<ul>${readiness.gaps.map(gap => `<li>${escapeHtml(gap)}</li>`).join("")}</ul>` : `<p class="all-clear"><span aria-hidden="true">✓</span> No open checks remain.</p>`;
-  const supportNotice = licensed || demoMode ? `<p class="licensed-note">Supported edition features are available${demoMode ? " in this sample" : ""}.</p>` : `<aside class="support-nudge"><p><strong>Supported edition · £24 once</strong></p><p>Add saved cover notes and custom checklist items.</p><a href="${checkoutUrl()}">Buy the supported edition</a></aside>`;
+  const supportNotice = licensed || demoMode ? `<p class="licensed-note">Supported edition features are available${demoMode ? " in this sample" : ""}.</p>` : `<aside class="support-nudge">${licenseNotice ? `<p><strong>${escapeHtml(licenseNotice)}</strong></p>` : ""}<p><strong>Supported edition · £24 once</strong></p><p>Add saved cover notes and custom checklist items.</p><a href="${checkoutUrl()}">Buy the supported edition</a></aside>`;
 
   return shell(`<section class="workspace-title"><p class="eyebrow">Local quarterly workspace</p><h1>Prepare this quarter’s evidence pack</h1><p>Your work saves on this device. Nothing is sent to HMRC.</p></section>
     ${overview(workspace)}
@@ -240,7 +241,10 @@ window.addEventListener("offline", () => { const state = document.querySelector<
 captureReturnedLicense();
 licensed = hasCachedLicense();
 void openRoute();
-if (location.pathname !== "/demo") void verifyLicense().then(valid => { if (valid !== licensed) { licensed = valid; render(); } });
+if (location.pathname !== "/demo") void verifyLicense().then(valid => {
+  if (licensed && !valid) licenseNotice = "This licence is no longer active.";
+  if (valid !== licensed) { licensed = valid; render(); }
+});
 if ("serviceWorker" in navigator && import.meta.env.PROD) navigator.serviceWorker.register("/sw.js").then(registration => {
   registration.addEventListener("updatefound", () => {
     if (navigator.serviceWorker.controller) { statusMessage = "An update is installing. It will be ready on the next page."; render(); }

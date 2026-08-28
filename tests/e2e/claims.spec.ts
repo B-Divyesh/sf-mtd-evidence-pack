@@ -45,6 +45,9 @@ test("@claim:encrypted-pack @claim:free-core-export exports a password-protected
   const reader = new ZipReader(new BlobReader(new Blob([archiveBytes])), { password: "correct-horse-26" });
   const entries = await reader.getEntries();
   expect(entries.map(entry => entry.filename)).toEqual(expect.arrayContaining(["README.txt", "manifest.json", "records/transactions.csv", "summary/quarterly-handoff.pdf"]));
+  expect(entries.some(entry => entry.filename.startsWith("source-files/"))).toBe(true);
+  const pdfEntry = entries.find(entry => entry.filename === "summary/quarterly-handoff.pdf")!;
+  expect(await pdfEntry.getData!(new TextWriter())).toMatch(/^%PDF-1.4/);
   const manifestEntry = entries.find(entry => entry.filename === "manifest.json")!;
   const manifest = JSON.parse(await manifestEntry.getData!(new TextWriter())) as { recordCount: number; files: Array<{ sha256: string }> };
   expect(manifest.recordCount).toBe(12);

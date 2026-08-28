@@ -16,7 +16,7 @@ The interface is not a generic dashboard. A narrow editorial masthead meets an a
 - `acid #D7F06A`: highlight and primary action; `#17233B` text is 11.2:1.
 - `coral #E96855`: warnings and surreal sun detail; never the only status signal.
 - `sage #28735A`: complete state; paired with words and symbols.
-- `danger #A13D37`: errors; 5.9:1 on paper-light.
+- `danger #8D332E`: errors and small numbered labels; 6.9:1 on paper-light.
 
 This is an explicitly light, paper-led product with night panels. A separate dark mode would weaken the paper-versus-night spatial idea, so every background is painted deliberately.
 

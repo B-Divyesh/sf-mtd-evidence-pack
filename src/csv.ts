@@ -43,7 +43,8 @@ export function parseTransactionsCsv(input: string): CsvResult {
 
 const quote = (value: string | number) => {
   const text = String(value);
-  const safe = typeof value === "string" && /^[=+\-@]/.test(text) ? `'${text}` : text;
+  const unsafeFormula = /^[=+@]/.test(text) || (/^-/.test(text) && !/^-\d+(\.\d+)?$/.test(text));
+  const safe = typeof value === "string" && unsafeFormula ? `'${text}` : text;
   return `"${safe.replaceAll('"', '""')}"`;
 };
 
