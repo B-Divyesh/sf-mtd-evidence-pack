@@ -32,13 +32,10 @@ Audited 28 August 2026. Counts treat hyphenated terms as one word. No line excee
 | Confirm checklist changes with them. | 5 | — |
 | Keep the core pack free | 5 | — |
 | Import records, check the quarter, and export the encrypted pack without paying. | 11 | — |
-| One payment adds saved cover notes and custom checklist items. | 9 | — |
-| Buy the supported edition | 4 | — |
-| Have a licence? | 3 | — |
+| Restore an existing licence | 4 | — |
+| A verified licence adds saved cover notes and custom checklist items. | 10 | — |
 | Paste your licence | 3 | — |
 | Verify licence | 2 | — |
-| Sociobot/Dodo is the merchant of record. | 6 | — |
-| Refunds are handled there. | 4 | — |
 
 ## First-screen read-aloud check
 

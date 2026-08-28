@@ -25,7 +25,7 @@ button, a, input, textarea, summary { -webkit-tap-highlight-color: transparent; 
 a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: .08em; }
 a:hover { text-decoration-thickness: .14em; }
 button { color: inherit; }
-img { display: block; max-width: 100%; }
+img { display: block; max-width: 100%; height: auto; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.04; letter-spacing: -.025em; }
 h1 { margin-bottom: 24px; font-size: clamp(3rem, 7.2vw, 5.8rem); max-width: 12ch; }
@@ -97,11 +97,8 @@ main { overflow: clip; }
 .night-section > p { grid-column: 2; max-width: 52ch; color: #d9dce3; }
 .pricing { display: grid; grid-template-columns: 1fr 400px; gap: 80px; align-items: start; }
 .price-ticket { padding: 32px; color: var(--ink); background: var(--coral); border: 2px solid var(--ink); box-shadow: 9px 9px 0 var(--ink); }
-.price { margin: 0; font-family: Georgia, serif; font-size: 5rem; line-height: 1; }
-.price span { vertical-align: top; font-size: 2rem; }
-.price-ticket .button { width: 100%; margin: 12px 0 20px; }
-.price-ticket details { padding: 16px 0; border-top: 1px solid rgba(23,35,59,.5); }
-.price-ticket summary { min-height: 44px; display: flex; align-items: center; font-weight: 850; cursor: pointer; }
+.price-ticket h3 { font-size: 1.8rem; }
+.price-ticket .button { width: 100%; margin-top: 12px; }
 .restore-form { display: grid; gap: 8px; padding-top: 12px; }
 .fine-print { margin: 8px 0 0; font-size: .8rem; }
 
@@ -204,6 +201,8 @@ td small { color: var(--ink-soft); }
   .network-state { grid-column: 1/-1; width: max-content; }
   .hero { min-height: auto; grid-template-columns: 1fr; padding-top: 56px; }
   .hero-art { margin: 24px 0 0; }
+  .hero .paper-rise { animation: none; }
+  .hero-art img { clip-path: none; }
   .preview-section { grid-template-columns: 1fr; }
   .section-number { writing-mode: initial; transform: none; }
   .steps, .pricing, .night-section { grid-template-columns: 1fr; gap: 32px; }

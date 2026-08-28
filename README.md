@@ -24,13 +24,13 @@ Send the ZIP password through a different channel. The password is never saved.
 
 ## Privacy and offline use
 
-See the in-product [Privacy](/privacy) page for browser-data controls and the Sociobot payment service for its own privacy information.
+See the in-product [Privacy](/privacy) page for browser-data controls and licence checks.
 
 The app shell and sample work after the first visit. Install it from a supporting browser for a standalone window.
 
 ## Supported edition
 
-The core import, checklist, attachments, and encrypted export are free. A £24 one-time purchase adds saved cover notes and custom checklist items. Checkout and licence verification use the Sociobot billing API; no payment provider is embedded here.
+The core import, checklist, attachments, and encrypted export are free. Existing licence holders can restore saved cover notes and custom checklist items. Licence verification uses the Sociobot billing API.
 
 ## Develop
 
@@ -41,7 +41,7 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. No account, environment variable, or remote service is needed for the core workflow.
+Open <http://localhost:5173>.
 
 ## Test and build
 

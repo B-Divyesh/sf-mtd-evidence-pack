@@ -96,10 +96,23 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.2");
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
   await expect(page.locator('[name="traderName"]')).toHaveValue("Rowan Field Studio");
+});
+
+test("service worker updates are announced", async ({ page }) => {
+  await page.goto("/demo");
+  await expect(page.locator(".build-id")).toContainText("v1.0.2");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.2");
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
+    registration.dispatchEvent(new Event("updatefound"));
+  });
+  await expect(page.locator(".live-region")).toContainText("An update is installing. It will be ready on the next page.");
 });
 
 test("@claim:paid-license a verified licence adds custom checks and cover notes", async ({ page }) => {
@@ -109,8 +122,52 @@ test("@claim:paid-license a verified licence adds custom checks and cover notes"
   await page.getByRole("button", { name: "Start for real" }).click();
   await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
   await page.goto("/workspace?license=sample-valid-token");
+  await expect(page).toHaveURL("/workspace");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("sb_license:mtd-evidence-pack"))).toBe("sample-valid-token");
   await expect(page.locator("#custom-check")).toBeEnabled();
   await expect(page.locator("#cover-note")).toBeEnabled();
+});
+
+test("unavailable checkout is not advertised on any public route", async ({ page }) => {
+  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) {
+    await page.goto(path);
+    await expect(page.locator('a[href*="/checkout"]'), path).toHaveCount(0);
+    await expect(page.getByText("Buy the supported edition", { exact: true }), path).toHaveCount(0);
+    await expect(page.getByText("£24", { exact: true }), path).toHaveCount(0);
+  }
+  const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
+  expect(readme).not.toContain("/checkout");
+  expect(readme).not.toContain("£24");
+  expect(readme).not.toContain("one-time purchase");
+});
+
+test("@performance mobile landing keeps blocking work within 200ms", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const session = await page.context().newCDPSession(page);
+  await session.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  await page.addInitScript(() => {
+    (window as typeof window & { __totalBlockingTime?: number }).__totalBlockingTime = 0;
+    new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) {
+        (window as typeof window & { __totalBlockingTime: number }).__totalBlockingTime += Math.max(0, entry.duration - 50);
+      }
+    }).observe({ type: "longtask", buffered: true });
+  });
+  await page.goto("/");
+  await page.waitForTimeout(600);
+  const heroTreatment = await page.locator(".hero-art").evaluate(element => {
+    const art = getComputedStyle(element);
+    const imageElement = element.querySelector("img")!;
+    const image = getComputedStyle(imageElement);
+    const bounds = imageElement.getBoundingClientRect();
+    return { animation: art.animationName, clipPath: image.clipPath, aspectRatio: bounds.width / bounds.height };
+  });
+  expect(heroTreatment.animation).toBe("none");
+  expect(heroTreatment.clipPath).toBe("none");
+  expect(heroTreatment.aspectRatio).toBeCloseTo(1.5, 1);
+  const blockingTime = await page.evaluate(() => (window as typeof window & { __totalBlockingTime: number }).__totalBlockingTime);
+  expect(blockingTime).toBeLessThanOrEqual(200);
+  await session.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 });
 
 test("all product routes have no serious accessibility violations", async ({ page }) => {
@@ -146,4 +203,6 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(1);
   await page.getByRole("button", { name: "Reset demo" }).focus();
   await expect(page.getByRole("button", { name: "Reset demo" })).toBeFocused();
+  const results = await new AxeBuilder({ page: page as never }).analyze();
+  expect(results.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
 });
