@@ -205,4 +205,8 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Reset demo" })).toBeFocused();
   const results = await new AxeBuilder({ page: page as never }).analyze();
   expect(results.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
+  await page.goto("/workspace");
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
+  const workspaceResults = await new AxeBuilder({ page: page as never }).analyze();
+  expect(workspaceResults.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
 });

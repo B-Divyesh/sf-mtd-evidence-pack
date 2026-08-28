@@ -241,6 +241,7 @@ td small { color: var(--ink-soft); }
   .section-lead { grid-template-columns: 38px 1fr; }
   .form-grid, .full-label { grid-template-columns: 1fr; padding-left: 0; }
   .import-bar, .table-summary, .table-wrap, .document-list, .empty-state, .checklist, .inline-form, .support-nudge, .licensed-note, .field-note { margin-left: 0; }
+  .table-wrap { overflow-x: visible; }
   .import-bar { align-items: flex-start; flex-direction: column; }
   .import-bar > span { margin-left: 0; }
   table, tbody, tr, td { display: block; }
