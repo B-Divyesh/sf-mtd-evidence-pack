@@ -1,5 +1,13 @@
 # Handoff — MTD Evidence Pack
 
+> **Independent release decision (28 August 2026): FAIL.** Candidate
+> `53f86b0cf1704036dce0ec4147898a49424249ad` at
+> <https://mtd-evidence-pack.sociobot.in> must not release. The independent
+> verifier found silent invalid CSV acceptance, a mobile Lighthouse performance
+> score below the required threshold, and unlisted public claims. See
+> `.factory/verification.md` for exact reproduction and full evidence. This
+> decision supersedes the historical builder results below.
+
 Date: 28 August 2026
 
 Work order: `mtd-evidence-pack-build-1`
