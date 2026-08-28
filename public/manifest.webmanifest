@@ -2,7 +2,7 @@
   "name": "MTD Evidence Pack",
   "short_name": "Evidence Pack",
   "description": "Prepare a quarterly bookkeeping handoff on your device.",
-  "start_url": "/?v=1.0.0",
+  "start_url": "/?v=1.0.1",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F3EBD8",

@@ -4,7 +4,7 @@ Prepare a quarterly MTD evidence pack from local bookkeeping records.
 
 MTD Evidence Pack is for UK sole traders who keep their own books. It imports a categorised CSV, tracks a versioned evidence checklist, attaches source files, and exports a password-protected handoff for an accountant or compatible filing software.
 
-It is not tax advice, filing software, an HMRC service, or legal certification.
+Use compatible filing software or an accountant when you are ready to submit.
 
 ## Try the sample
 
@@ -24,7 +24,7 @@ Send the ZIP password through a different channel. The password is never saved.
 
 ## Privacy and offline use
 
-Real work is stored in IndexedDB on the current device. The app makes no record, file, analytics, bank, or HMRC request. A licence check sends only the licence token to the Sociobot billing API.
+See the in-product [Privacy](/privacy) page for browser-data controls and the Sociobot payment service for its own privacy information.
 
 The app shell and sample work after the first visit. Install it from a supporting browser for a standalone window.
 
@@ -65,6 +65,8 @@ Deploy the contents of `dist/` to a static host with SPA fallbacks. `public/stat
 ## Data format
 
 CSV headers are `date,description,amount,category,reference`. Dates use `YYYY-MM-DD`. Income is positive and expenses are negative. The `reference` column is optional.
+
+The importer rejects invalid calendar dates and missing amounts before replacing records.
 
 ## Licence
 

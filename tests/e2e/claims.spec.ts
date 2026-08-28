@@ -15,8 +15,16 @@ test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
 });
 
-test("@claim:csv-import imports categorised CSV records", async ({ page }) => {
+test("@claim:csv-import rejects impossible dates and missing amounts, then imports a valid CSV", async ({ page }) => {
   await page.goto("/demo");
+  await page.locator("[data-import-csv]").setInputFiles({
+    name: "invalid-quarter.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category,reference\n2026-02-30,Impossible day,25,Sales,BAD-1\n2026-04-11,Blank amount,,Sales,BAD-2\n2026-04-12,Whitespace amount,   ,Sales,BAD-3\n")
+  });
+  await expect(page.locator(".message.error")).toContainText("Row 2 has an invalid date. Use YYYY-MM-DD.");
+  await expect(page.locator(".message.error")).toContainText("Row 3 has an invalid amount.");
+  await expect(page.locator(".message.error")).toContainText("Row 4 has an invalid amount.");
+  await expect(page.locator(".table-summary")).toContainText("12 records");
   await page.locator("[data-import-csv]").setInputFiles({
     name: "quarter.csv", mimeType: "text/csv",
     buffer: Buffer.from("date,description,amount,category,reference\n2026-04-10,Oak Studio invoice,400,Sales,I-1\n2026-04-11,Printer paper,-20,Office costs,R-1\n")
@@ -56,12 +64,28 @@ test("@claim:encrypted-pack @claim:free-core-export exports a password-protected
   await reader.close();
 });
 
-test("@claim:local-only demo activity makes no cross-origin request", async ({ page }) => {
+test("@claim:local-only records entered after the demo stay in IndexedDB and make no cross-origin request", async ({ page }) => {
   const origins = new Set<string>();
   page.on("request", request => origins.add(new URL(request.url()).origin));
   await page.goto("/demo");
-  await page.locator('[data-check="sales"]').uncheck();
-  await page.getByRole("button", { name: "Reset demo" }).click();
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await page.locator("[data-import-csv]").setInputFiles({
+    name: "private-record.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category\n2026-04-10,Private local record,400,Sales\n")
+  });
+  await expect(page.getByText("Private local record")).toBeVisible();
+  await expect.poll(() => page.evaluate(async () => {
+    const request = indexedDB.open("mtd-evidence-pack:v1");
+    return await new Promise<boolean>((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const get = db.transaction("workspace").objectStore("workspace").get("current");
+        get.onsuccess = () => { db.close(); resolve(get.result?.transactions?.[0]?.description === "Private local record"); };
+        get.onerror = () => reject(get.error);
+      };
+    });
+  })).toBe(true);
   expect([...origins]).toEqual(["http://127.0.0.1:4173"]);
 });
 
@@ -80,16 +104,17 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
 
 test("@claim:paid-license a verified licence adds custom checks and cover notes", async ({ page }) => {
   await page.route("https://api.sociobot.in/**", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) }));
-  await page.goto("/");
-  await expect(page.getByText("£24")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Buy the supported edition" })).toHaveAttribute("href", /api\.sociobot\.in/);
+  await page.goto("/demo");
+  await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
   await page.goto("/workspace?license=sample-valid-token");
   await expect(page.locator("#custom-check")).toBeEnabled();
   await expect(page.locator("#cover-note")).toBeEnabled();
 });
 
-test("landing and workspace have no serious accessibility violations", async ({ page }) => {
-  for (const path of ["/", "/demo", "/privacy", "/terms", "/missing-page"]) {
+test("all product routes have no serious accessibility violations", async ({ page }) => {
+  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms", "/missing-page"]) {
     await page.goto(path);
     const results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? "")), path).toEqual([]);
@@ -104,6 +129,14 @@ test("routes load without browser errors", async ({ page }) => {
   page.on("pageerror", error => errors.push(error.message));
   for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms", "/missing-page"]) await page.goto(path);
   expect(errors).toEqual([]);
+});
+
+test("@keyboard Space toggles a demo checklist item", async ({ page }) => {
+  await page.goto("/demo");
+  const check = page.locator('[data-check="sales"]');
+  await check.focus();
+  await page.keyboard.press("Space");
+  await expect(check).not.toBeChecked();
 });
 
 test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {

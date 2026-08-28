@@ -8,10 +8,10 @@
   },
   {
     "id": "csv-import",
-    "claim": "Imports categorised CSV records",
+    "claim": "Imports valid categorised CSV records and rejects invalid dates or amounts",
     "where": "workspace and README",
     "test": "npm run test:e2e -- --grep @claim:csv-import",
-    "sandbox": "demo workspace; upload a two-row CSV and assert both records"
+    "sandbox": "demo workspace; reject an overflow date and blank or whitespace amount, then import a two-row valid CSV"
   },
   {
     "id": "encrypted-pack",
@@ -29,10 +29,10 @@
   },
   {
     "id": "local-only",
-    "claim": "Records stay on this device",
-    "where": "landing, privacy page, and README",
+    "claim": "Records entered from the demo flow stay in local browser storage",
+    "where": "landing and workspace",
     "test": "npm run test:e2e -- --grep @claim:local-only",
-    "sandbox": "demo flow with every request observed; assert only the product origin"
+    "sandbox": "start at /demo, enter the real workspace, import a record, inspect IndexedDB, and assert only the product origin was requested"
   },
   {
     "id": "offline-reload",
@@ -46,6 +46,6 @@
     "claim": "A verified licence adds custom checks and saved cover notes",
     "where": "pricing and workspace",
     "test": "npm run test:e2e -- --grep @claim:paid-license",
-    "sandbox": "fresh workspace with a recorded valid verify response; assert both paid fields are enabled"
+    "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts both paid fields are enabled"
   }
 ]

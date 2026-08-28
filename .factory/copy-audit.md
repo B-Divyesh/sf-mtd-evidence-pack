@@ -27,13 +27,8 @@ Audited 28 August 2026. Counts treat hyphenated terms as one word. No line excee
 | Check and export | 3 | — |
 | Close each checklist item. | 4 | — |
 | Download one password-protected ZIP with CSV, PDF, files, and hashes. | 10 | — |
-| This prepares records. | 3 | — |
-| It does not file them. | 5 | — |
-| No HMRC sign-in or credentials | 5 | — |
-| No tax calculation or advice | 5 | — |
-| No bank connection | 3 | — |
-| No claim of legal certification | 5 | — |
-| Use compatible filing software or an accountant for submission. | 9 | — |
+| Prepare records for the next handoff | 6 | — |
+| Use compatible filing software or an accountant when you are ready to submit. | 13 | — |
 | Confirm checklist changes with them. | 5 | — |
 | Keep the core pack free | 5 | — |
 | Import records, check the quarter, and export the encrypted pack without paying. | 11 | — |
