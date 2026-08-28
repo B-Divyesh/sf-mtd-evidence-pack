@@ -44,6 +44,6 @@ npm run verify:url
 
 ## Deployment and known gaps
 
-The work order specifies static deployment from `dist/`. Pushing `main` is the available deployment trigger; verify the live origin serves the repaired `v1.0.1` cache after the factory static deployment completes. No infrastructure, DNS, billing product, or payment-provider changes were made.
+The implementation and this handoff were pushed to `main` (`c27ada9`). The repository has no deploy workflow or GitHub Pages configuration, and no credentialed static-host deploy command was supplied. At 14:21 UTC the live origin still served the old `index-BRuENn1O.js` (SHA-256 `842a5c372a9a65b14fff9928a45a4e7b23aa0a4555d173f8fa6e012445c26c4f`) and service-worker cache `v1.0.0`; the repaired build has `index-C6eZ0t1l.js` (SHA-256 `422d9c8e66fca1418f2d83b4a7264d51b9f4cf9b8c4929e4423a7f211bd4a5c4`) and cache `v1.0.1`. The factory static deployment must publish `dist/` from the pushed commit before live identity can pass. No infrastructure, DNS, billing product, or payment-provider changes were made.
 
 The product intentionally remains a records-preparation tool. The factory brief's HMRC submission, tax-advice, bank-aggregation, and certification non-goals remain out of scope.
