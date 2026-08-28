@@ -1,0 +1,64 @@
+# Landing-page copy audit
+
+Audited 28 August 2026. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+
+| Copy | Words | Flag |
+|---|---:|---|
+| Local quarterly record check | 4 | — |
+| Prepare your quarterly evidence handoff | 5 | — |
+| For UK sole traders who keep local books and need a clear pack for an accountant or filing software. | 19 | — |
+| Try it with sample data | 5 | — |
+| Loads one sample quarter. | 4 | — |
+| Nothing is saved. | 3 | — |
+| Works after your first visit | 5 | — |
+| Records stay on this device | 5 | — |
+| Core pack export is free | 5 | — |
+| Four quarters. | 2 | — |
+| One traceable path through the source records. | 7 | — |
+| See what is missing before handoff | 7 | — |
+| The checklist and records stay beside each other. | 8 | — |
+| Open items remain named. | 4 | — |
+| Build the pack in three passes | 6 | — |
+| Set the period | 3 | — |
+| Name the quarter and check its start and end dates. | 10 | — |
+| Import and match | 3 | — |
+| Add a categorised CSV. | 4 | — |
+| Attach statements, invoices, receipts, or an index. | 7 | — |
+| Check and export | 3 | — |
+| Close each checklist item. | 4 | — |
+| Download one password-protected ZIP with CSV, PDF, files, and hashes. | 10 | — |
+| This prepares records. | 3 | — |
+| It does not file them. | 5 | — |
+| No HMRC sign-in or credentials | 5 | — |
+| No tax calculation or advice | 5 | — |
+| No bank connection | 3 | — |
+| No claim of legal certification | 5 | — |
+| Use compatible filing software or an accountant for submission. | 9 | — |
+| Confirm checklist changes with them. | 5 | — |
+| Keep the core pack free | 5 | — |
+| Import records, check the quarter, and export the encrypted pack without paying. | 11 | — |
+| One payment adds saved cover notes and custom checklist items. | 9 | — |
+| Buy the supported edition | 4 | — |
+| Have a licence? | 3 | — |
+| Paste your licence | 3 | — |
+| Verify licence | 2 | — |
+| Sociobot/Dodo is the merchant of record. | 6 | — |
+| Refunds are handled there. | 4 | — |
+
+## First-screen read-aloud check
+
+“Prepare your quarterly evidence handoff. For UK sole traders who keep local books and need a clear pack for an accountant or filing software. Try it with sample data.”
+
+The job, user, outcome, and first action fit in one short breath.
+
+## Terminology
+
+| Concept | One term used |
+|---|---|
+| Exported collection | evidence pack |
+| Imported bookkeeping line | record |
+| Supporting attachment | source file |
+| Time window | period |
+| Completion control | checklist item |
+| Sample environment | demo |
+| Paid entitlement | licence |
