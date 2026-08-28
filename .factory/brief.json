@@ -1,0 +1,11 @@
+{
+  "slug": "mtd-evidence-pack",
+  "title": "MTD Evidence Pack",
+  "territory": "utilities",
+  "user": "A UK sole trader using local bookkeeping who needs a quarter-by-quarter evidence pack and a clear readiness checklist before handing data to compatible filing software or an accountant.",
+  "smallest_useful_product": "Local PWA that imports categorized CSV transactions, checks completeness against a user-maintained period checklist, and exports a read-only ZIP/CSV/PDF handoff.",
+  "non_goals": ["HMRC API submission", "tax calculation advice", "bank aggregation", "legal certification"],
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "summary": "Prepare a quarterly MTD evidence pack from local bookkeeping records."
+}
