@@ -1,27 +1,8 @@
 import type { Workspace } from "./types";
 import { transactionsToCsv } from "./csv";
-
-export type Readiness = {
-  complete: number;
-  total: number;
-  percent: number;
-  gaps: string[];
-  outsidePeriod: number;
-  uncategorised: number;
-};
-
-export function assessReadiness(workspace: Workspace): Readiness {
-  const complete = workspace.checklist.filter(item => item.done).length;
-  const gaps = workspace.checklist.filter(item => !item.done).map(item => item.label);
-  const outsidePeriod = workspace.transactions.filter(row => row.date < workspace.periodStart || row.date > workspace.periodEnd).length;
-  const uncategorised = workspace.transactions.filter(row => !row.category.trim()).length;
-  if (!workspace.transactions.length) gaps.unshift("Import at least one bookkeeping record");
-  if (!workspace.documents.length) gaps.push("Attach source documents or an evidence index");
-  if (outsidePeriod) gaps.push(`${outsidePeriod} record${outsidePeriod === 1 ? " is" : "s are"} outside the period`);
-  if (uncategorised) gaps.push(`${uncategorised} record${uncategorised === 1 ? " needs" : "s need"} a category`);
-  const total = workspace.checklist.length;
-  return { complete, total, percent: total ? Math.round((complete / total) * 100) : 0, gaps, outsidePeriod, uncategorised };
-}
+import { assessReadiness } from "./readiness";
+export { assessReadiness } from "./readiness";
+export { downloadBlob } from "./download";
 
 function ascii(value: string): string {
   return value.normalize("NFKD").replace(/[£]/g, "GBP ").replace(/[–—]/g, "-").replace(/[^\x20-\x7E]/g, "?");
@@ -115,13 +96,4 @@ export async function buildEvidenceZip(workspace: Workspace, password: string): 
   await writer.add("manifest.json", new TextReader(JSON.stringify(manifest, null, 2)));
   for (const file of files) await writer.add(file.path, new BlobReader(file.blob));
   return writer.close();
-}
-
-export function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

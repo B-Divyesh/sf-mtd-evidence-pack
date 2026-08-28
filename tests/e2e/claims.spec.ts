@@ -34,6 +34,27 @@ test("@claim:csv-import rejects impossible dates and missing amounts, then impor
   await expect(page.getByText("Printer paper")).toBeVisible();
 });
 
+test("@claim:source-file-size accepts 10 MB and rejects 10 MB plus one byte", async ({ page }) => {
+  await page.goto("/demo");
+  const fileInput = page.locator("[data-import-docs]");
+  await fileInput.setInputFiles({
+    name: "ten-megabytes.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.alloc(10 * 1024 * 1024)
+  });
+  await expect(page.locator(".message.success")).toContainText("1 source file attached.");
+  await expect(page.getByText("ten-megabytes.pdf", { exact: true })).toBeVisible();
+
+  await fileInput.setInputFiles({
+    name: "one-byte-too-large.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.alloc(10 * 1024 * 1024 + 1)
+  });
+  await expect(page.locator(".message.error")).toContainText("one-byte-too-large.pdf is over 10 MB. Choose a smaller file.");
+  await expect(page.getByText("one-byte-too-large.pdf", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("ten-megabytes.pdf", { exact: true })).toBeVisible();
+});
+
 test("@claim:encrypted-pack @claim:free-core-export exports a password-protected ZIP with its listed files", async ({ page }) => {
   await page.goto("/demo");
   await page.locator("#pack-password").fill("correct-horse-26");
@@ -96,7 +117,7 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.2");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.3");
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
@@ -105,8 +126,8 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.2");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.2");
+  await expect(page.locator(".build-id")).toContainText("v1.0.3");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.3");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -146,10 +167,13 @@ test("@performance mobile landing keeps blocking work within 200ms", async ({ pa
   const session = await page.context().newCDPSession(page);
   await session.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await page.addInitScript(() => {
-    (window as typeof window & { __totalBlockingTime?: number }).__totalBlockingTime = 0;
+    const metrics = window as typeof window & { __totalBlockingTime?: number; __longTasks?: number[] };
+    metrics.__totalBlockingTime = 0;
+    metrics.__longTasks = [];
     new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
-        (window as typeof window & { __totalBlockingTime: number }).__totalBlockingTime += Math.max(0, entry.duration - 50);
+        metrics.__totalBlockingTime! += Math.max(0, entry.duration - 50);
+        metrics.__longTasks!.push(Math.round(entry.duration));
       }
     }).observe({ type: "longtask", buffered: true });
   });
@@ -165,8 +189,12 @@ test("@performance mobile landing keeps blocking work within 200ms", async ({ pa
   expect(heroTreatment.animation).toBe("none");
   expect(heroTreatment.clipPath).toBe("none");
   expect(heroTreatment.aspectRatio).toBeCloseTo(1.5, 1);
-  const blockingTime = await page.evaluate(() => (window as typeof window & { __totalBlockingTime: number }).__totalBlockingTime);
-  expect(blockingTime).toBeLessThanOrEqual(200);
+  const metrics = await page.evaluate(() => {
+    const values = window as typeof window & { __totalBlockingTime: number; __longTasks: number[] };
+    return { blockingTime: Math.round(values.__totalBlockingTime), longTasks: values.__longTasks };
+  });
+  console.info(`Mobile blocking time: ${metrics.blockingTime} ms; long tasks: ${metrics.longTasks.join(", ") || "none"}`);
+  expect(metrics.blockingTime).toBeLessThanOrEqual(200);
   await session.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 });
 
@@ -194,6 +222,18 @@ test("@keyboard Space toggles a demo checklist item", async ({ page }) => {
   await check.focus();
   await page.keyboard.press("Space");
   await expect(check).not.toBeChecked();
+});
+
+test("@keyboard cold load starts at the skip link and client navigation focuses the heading", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("h1")).not.toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main")).toBeFocused();
+
+  await page.getByRole("link", { name: "Demo", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeFocused();
 });
 
 test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {

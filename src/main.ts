@@ -4,7 +4,9 @@ import { emptyWorkspace } from "./types";
 import { sampleWorkspace } from "./sample";
 import { loadWorkspace, saveWorkspace, deleteWorkspace } from "./storage";
 import { parseTransactionsCsv, CSV_TEMPLATE } from "./csv";
-import { assessReadiness, buildEvidenceZip, downloadBlob } from "./export";
+import { assessReadiness } from "./readiness";
+import { firstOversizedSourceFile, MAX_SOURCE_FILE_LABEL } from "./files";
+import { downloadBlob } from "./download";
 import { captureReturnedLicense, hasCachedLicense, restoreLicense, verifyLicense } from "./license";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -16,6 +18,7 @@ let statusMessage = "";
 let errorMessage = "";
 let licenseNotice = "";
 let shouldScrollTop = false;
+let initialRouteOpened = false;
 
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 const money = (value: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(value);
@@ -51,11 +54,11 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.2 · Generated art disclosed</p></footer>`;
+  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.3 · Generated art disclosed</p></footer>`;
 }
 
 function shell(content: string, banner = ""): string {
-  return `${header()}${banner}<main id="main">${content}</main>${footer()}<div class="live-region" aria-live="polite" aria-atomic="true">${escapeHtml(statusMessage || errorMessage)}</div><div id="route-announcer" class="sr-only" aria-live="polite"></div>`;
+  return `${header()}${banner}<main id="main" tabindex="-1">${content}</main>${footer()}<div class="live-region" aria-live="polite" aria-atomic="true">${escapeHtml(statusMessage || errorMessage)}</div><div id="route-announcer" class="sr-only" aria-live="polite"></div>`;
 }
 
 function demoBanner(): string {
@@ -146,7 +149,8 @@ async function openRoute(): Promise<void> {
   }
   render();
   setRouteMetadata(path);
-  requestAnimationFrame(announceRoute);
+  if (initialRouteOpened) requestAnimationFrame(announceRoute);
+  initialRouteOpened = true;
 }
 
 function render(): void {
@@ -156,6 +160,14 @@ function render(): void {
 
 app.addEventListener("click", event => {
   const target = event.target as HTMLElement;
+  const skipLink = target.closest<HTMLAnchorElement>("a.skip-link");
+  if (skipLink) {
+    event.preventDefault();
+    const main = document.querySelector<HTMLElement>("#main");
+    main?.focus({ preventScroll: true });
+    main?.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    return;
+  }
   const link = target.closest<HTMLAnchorElement>("a[data-link]");
   if (link && link.origin === location.origin) { event.preventDefault(); navigate(link.pathname + link.search); return; }
   const action = target.closest<HTMLElement>("[data-action]")?.dataset.action;
@@ -189,8 +201,8 @@ app.addEventListener("change", async event => {
   }
   if (input.matches("[data-import-docs]") && input.files) {
     const files = Array.from(input.files);
-    const tooLarge = files.find(file => file.size > 10 * 1024 * 1024);
-    if (tooLarge) errorMessage = `${tooLarge.name} is over 10 MB. Choose a smaller file.`;
+    const tooLarge = firstOversizedSourceFile(files);
+    if (tooLarge) errorMessage = `${tooLarge.name} is over ${MAX_SOURCE_FILE_LABEL}. Choose a smaller file.`;
     else {
       workspace.documents.push(...files.map(file => ({ id: crypto.randomUUID(), name: file.name, type: file.type || "application/octet-stream", size: file.size, addedAt: new Date().toISOString(), data: file })));
       statusMessage = `${files.length} source file${files.length === 1 ? "" : "s"} attached.`; errorMessage = ""; await persist();
@@ -222,7 +234,12 @@ app.addEventListener("submit", async event => {
     if (password.length < 8) { errorMessage = "The ZIP password needs at least 8 characters. Enter a longer password."; render(); return; }
     if (password !== confirmPassword) { errorMessage = "The passwords do not match. Enter the same password twice."; render(); return; }
     const button = form.querySelector<HTMLButtonElement>("button")!; button.disabled = true; button.textContent = "Building encrypted ZIP…";
-    try { const blob = await buildEvidenceZip(workspace, password); downloadBlob(blob, `evidence-pack-${workspace.periodEnd || "quarter"}.zip`); statusMessage = "Encrypted ZIP exported. Send its password separately."; errorMessage = ""; }
+    try {
+      const { buildEvidenceZip } = await import("./export");
+      const blob = await buildEvidenceZip(workspace, password);
+      downloadBlob(blob, `evidence-pack-${workspace.periodEnd || "quarter"}.zip`);
+      statusMessage = "Encrypted ZIP exported. Send its password separately."; errorMessage = "";
+    }
     catch { errorMessage = "The encrypted ZIP could not be built. Try again with this page open."; }
     render();
   }

@@ -14,6 +14,13 @@
     "sandbox": "demo workspace; reject an overflow date and blank or whitespace amount, then import a two-row valid CSV"
   },
   {
+    "id": "source-file-size",
+    "claim": "Each source file can be up to 10 MB",
+    "where": "workspace source-file control",
+    "test": "npm run test:e2e -- --grep @claim:source-file-size",
+    "sandbox": "fresh demo workspace; assert a 10 MB file is attached and a 10 MB plus one byte file is rejected without replacing it"
+  },
+  {
     "id": "encrypted-pack",
     "claim": "Exports a password-protected ZIP with CSV, PDF, source files, a manifest, and SHA-256 hashes without saving its password",
     "where": "landing, export panel, and README",

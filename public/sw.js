@@ -1,4 +1,4 @@
-const VERSION = "mtd-evidence-pack-v1.0.2";
+const VERSION = "mtd-evidence-pack-v1.0.3";
 const SHELL = ["/", "/demo", "/workspace", "/privacy", "/terms", "/offline.html", "/favicon.svg", "/manifest.webmanifest", "/assets/hero-ledger.webp", "/assets/hero-ledger-720.webp"];
 self.addEventListener("install", event => event.waitUntil((async () => {
   const cache = await caches.open(VERSION);
