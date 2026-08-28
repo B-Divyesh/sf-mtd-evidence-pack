@@ -70,7 +70,8 @@ function safeName(name: string): string { return name.replace(/[^a-zA-Z0-9._ -]/
 
 export async function buildEvidenceZip(workspace: Workspace, password: string): Promise<Blob> {
   if (password.length < 8) throw new Error("Use a password with at least 8 characters.");
-  const { ZipWriter, BlobWriter, BlobReader, TextReader } = await import("@zip.js/zip.js");
+  const { configure, ZipWriter, BlobWriter, BlobReader, TextReader } = await import("@zip.js/zip.js");
+  configure({ useWebWorkers: false });
   const csv = new Blob([transactionsToCsv(workspace.transactions)], { type: "text/csv" });
   const pdf = buildSummaryPdf(workspace);
   const readiness = assessReadiness(workspace);

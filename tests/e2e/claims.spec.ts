@@ -56,6 +56,19 @@ test("@claim:source-file-size accepts 10 MB and rejects 10 MB plus one byte", as
 });
 
 test("@claim:encrypted-pack @claim:free-core-export exports a password-protected ZIP with its listed files", async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on("console", message => { if (message.type() === "error") browserErrors.push(message.text()); });
+  page.on("pageerror", error => browserErrors.push(error.message));
+  await page.route("**/demo", async route => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      headers: {
+        ...response.headers(),
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://api.sociobot.in; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://api.sociobot.in; frame-ancestors 'none'"
+      }
+    });
+  });
   await page.goto("/demo");
   await page.locator("#pack-password").fill("correct-horse-26");
   await page.locator("#pack-password-confirm").fill("correct-horse-26");
@@ -82,6 +95,7 @@ test("@claim:encrypted-pack @claim:free-core-export exports a password-protected
   expect(manifest.recordCount).toBe(12);
   expect(manifest.files.every(file => /^[a-f0-9]{64}$/.test(file.sha256))).toBe(true);
   expect(await page.evaluate(password => Object.values(localStorage).includes(password), "correct-horse-26")).toBe(false);
+  expect(browserErrors).toEqual([]);
   await reader.close();
 });
 
@@ -107,7 +121,7 @@ test("@claim:local-only records entered after the demo stay in IndexedDB and mak
       };
     });
   })).toBe(true);
-  expect([...origins]).toEqual(["http://127.0.0.1:4173"]);
+  expect([...origins]).toEqual([new URL(page.url()).origin]);
 });
 
 test("@claim:offline-reload opens the sample workspace offline after one visit", async ({ page, context }) => {
