@@ -1,5 +1,12 @@
 # Handoff — MTD Evidence Pack repair
 
+> **Independent verification update (28 August 2026): FAIL — do not release
+> candidate `c01a8186fb08184c70634b9007a4ca768e8955b8`.** The live deployment
+> matches this candidate, and the free local PWA passes its declared claims,
+> but its advertised Sociobot checkout URL returns HTTP 404. See
+> [`.factory/verification-2.md`](verification-2.md) for exact evidence,
+> release-blocking defects, and retest criteria.
+
 Date: 28 August 2026
 Work order: `mtd-evidence-pack-repair-1`
 Repair base: `065f36b70c0e9f6e924bdfaedba0fd15f665b0c7` (failed candidate was `53f86b0cf1704036dce0ec4147898a49424249ad`)
