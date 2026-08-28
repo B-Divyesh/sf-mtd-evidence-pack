@@ -1,0 +1,55 @@
+import type { Transaction } from "./types";
+
+export type CsvResult = { rows: Transaction[]; errors: string[] };
+
+export function parseCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let value = "";
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    if (character === '"' && quoted && line[index + 1] === '"') { value += '"'; index += 1; }
+    else if (character === '"') quoted = !quoted;
+    else if (character === "," && !quoted) { cells.push(value.trim()); value = ""; }
+    else value += character;
+  }
+  cells.push(value.trim());
+  return cells;
+}
+
+export function parseTransactionsCsv(input: string): CsvResult {
+  const lines = input.replace(/^\uFEFF/, "").split(/\r?\n/).filter(line => line.trim());
+  if (lines.length < 2) return { rows: [], errors: ["The CSV needs a header row and at least one record."] };
+  const headers = parseCsvLine(lines[0]).map(header => header.toLowerCase().replace(/\s+/g, "_"));
+  const required = ["date", "description", "amount", "category"];
+  const missing = required.filter(name => !headers.includes(name));
+  if (missing.length) return { rows: [], errors: [`The CSV is missing: ${missing.join(", ")}.`] };
+  const rows: Transaction[] = [];
+  const errors: string[] = [];
+  lines.slice(1).forEach((line, offset) => {
+    const rowNumber = offset + 2;
+    const cells = parseCsvLine(line);
+    const read = (name: string) => cells[headers.indexOf(name)]?.trim() ?? "";
+    const amount = Number(read("amount").replace(/[£,]/g, ""));
+    const date = read("date");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) errors.push(`Row ${rowNumber} has an invalid date. Use YYYY-MM-DD.`);
+    else if (!read("description")) errors.push(`Row ${rowNumber} needs a description.`);
+    else if (!read("category")) errors.push(`Row ${rowNumber} needs a category.`);
+    else if (!Number.isFinite(amount)) errors.push(`Row ${rowNumber} has an invalid amount.`);
+    else rows.push({ id: crypto.randomUUID(), date, description: read("description"), amount, category: read("category"), reference: read("reference") });
+  });
+  return { rows, errors };
+}
+
+const quote = (value: string | number) => {
+  const text = String(value);
+  const safe = typeof value === "string" && /^[=+\-@]/.test(text) ? `'${text}` : text;
+  return `"${safe.replaceAll('"', '""')}"`;
+};
+
+export function transactionsToCsv(rows: Transaction[]): string {
+  const header = "date,description,amount,category,reference";
+  return [header, ...rows.map(row => [row.date, row.description, row.amount.toFixed(2), row.category, row.reference].map(quote).join(","))].join("\r\n");
+}
+
+export const CSV_TEMPLATE = "date,description,amount,category,reference\r\n2026-04-06,Example client invoice,500.00,Sales,INV-001\r\n2026-04-07,Example business expense,-25.00,Office costs,RCPT-001\r\n";

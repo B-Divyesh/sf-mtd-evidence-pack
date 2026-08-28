@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mtd-evidence-pack.sociobot.in/sitemap.xml
