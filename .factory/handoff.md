@@ -1,80 +1,49 @@
-# Handoff — MTD Evidence Pack
-
-> **Independent release decision (28 August 2026): FAIL.** Candidate
-> `53f86b0cf1704036dce0ec4147898a49424249ad` at
-> <https://mtd-evidence-pack.sociobot.in> must not release. The independent
-> verifier found silent invalid CSV acceptance, a mobile Lighthouse performance
-> score below the required threshold, and unlisted public claims. See
-> `.factory/verification.md` for exact reproduction and full evidence. This
-> decision supersedes the historical builder results below.
+# Handoff — MTD Evidence Pack repair
 
 Date: 28 August 2026
+Work order: `mtd-evidence-pack-repair-1`
+Repair base: `065f36b70c0e9f6e924bdfaedba0fd15f665b0c7` (failed candidate was `53f86b0cf1704036dce0ec4147898a49424249ad`)
+Implementation commit: `0f5048e9078c625b3cdf0922cfaa9b0e0f7666d4`
 
-Work order: `mtd-evidence-pack-build-1`
+## Release-blocking repairs
 
-Version: 1.0.0
+- CSV import now validates the actual Gregorian date rather than relying on JavaScript date parsing. It rejects overflow dates such as `2026-02-30` and non-leap `2026-02-29`.
+- Blank and whitespace-only amount cells are rejected before numeric parsing; the numeric value `0` remains valid.
+- The CSV claim test first rejects invalid input and verifies the sample remains unchanged, then imports a valid file. Unit tests cover leap-date, overflow, blank, whitespace, and valid zero boundaries.
+- Replaced the full-screen SVG turbulence overlay that caused mobile rendering work with a static, light paper pattern. Below-the-fold landing sections now use `content-visibility` with a reserved intrinsic size. The paper-ledger visual system and original artwork are unchanged.
+- Removed the untestable public scope and data-transfer guarantees named by the verifier. The researched brief's non-goals and all shipped behavior remain unchanged. The local-storage claim now imports a real record after beginning at `/demo`, checks IndexedDB, and observes request origins.
+- The recorded licence fixture claim now begins from `/demo` before entering the real workspace.
+- Bumped the PWA cache and manifest start URL to `1.0.1`, so repaired shell assets replace the prior service-worker cache. Added a browser-based `scripts/verify-url.sh` check.
 
-## What shipped
-
-- A Vite and TypeScript local-first PWA at `/workspace`.
-- A one-click, memory-only sample at `/demo` with 12 records, three source indexes, and one open check.
-- Categorised CSV import with row-level validation and a downloadable template.
-- Local IndexedDB storage for the period, records, checklist, cover note, and source files.
-- A versioned UK sole-trader evidence checklist with clear readiness gaps.
-- Password-protected ZIP export containing CSV, a one-page PDF summary, source files, a manifest, and SHA-256 hashes.
-- Formula-safe CSV output, an eight-character minimum ZIP password, and no stored export password.
-- A £24 one-time supported edition through Sociobot checkout and licence verification. It adds custom checks and saved cover notes. The core export remains free.
-- Install metadata, icons, offline caching, offline fallback, update notice, privacy, terms, 404, sitemap, robots, security headers, and route metadata.
-- An original surreal paper-ledger hero and matching social card. Source, prompt, and provenance are in `assets/src/` and `.factory/design.md`.
-
-## Run and verify
+## How to run
 
 ```sh
-npm install
+npm ci
+npm run lint
 npm test
 npm run build
+npm run preview -- --port 4173
+npm run verify:url
 ```
 
-The production command is exactly `npm run build`. It creates `dist/index.html`.
+`dist/index.html` is the static deployment entry point. The product remains a Vite TypeScript local-first PWA; no package-consumer test applies.
 
-Final local results:
+## Verification evidence
 
-- `npm test`: 5 unit tests and 10 Playwright tests passed.
-- All seven listed claims passed through the commands in `.factory/claims.json`.
-- Playwright axe scan: no serious or critical issues on home, demo, privacy, terms, or 404.
-- Mobile check: no horizontal overflow at 390 × 844; keyboard focus path passed.
-- Offline check: `/demo` reloaded with its records after the browser went offline.
-- Console check: no console or page errors across all routes.
-- Factory `verify-url.sh`: HTTP 200, title present, `lang=en-GB`, one `h1`, one `main`, no missing alt text, and no unlabelled buttons. Report: `.factory/verification/verify.json`.
-- `npm audit --omit=dev`: zero vulnerabilities.
+- Clean install: `npm ci` completed; `npm audit --omit=dev` reported `found 0 vulnerabilities`.
+- Type/lint: `npm run lint` passed (`tsc --noEmit`).
+- Complete suite: `npm test` passed: 7 Vitest unit tests and 11 Playwright browser tests.
+- Each exact command in `.factory/claims.json` passed independently: `demo-sandbox`, `csv-import`, `encrypted-pack`, `free-core-export`, `local-only`, `offline-reload`, and `paid-license`.
+- Production build: `npm run build` passed. Initial JS is 12.76 KB gzip; initial CSS is 4.82 KB gzip; the lazy ZIP chunk is 54.45 KB gzip; mobile hero is 12,534 bytes.
+- Browser checks: desktop and 390 × 844 mobile passed with no horizontal overflow. Space toggles a checklist control. Playwright axe found zero serious or critical violations on `/`, `/demo`, `/workspace`, `/privacy`, `/terms`, and the 404 route. Console/page-error test passed.
+- `npm run verify:url` on the production preview returned one title, `en-GB`, one `h1`, one `main`, zero images missing `alt`, zero unlabeled buttons, and no console errors.
+- Offline/update: the `/demo` claim waits for a controlling service worker, takes the browser offline, reloads the sample, and passes. The cache version is `mtd-evidence-pack-v1.0.1` and the manifest start URL is versioned.
+- Privacy: the local-storage claim begins at `/demo`, enters real mode, imports a record, confirms it in `mtd-evidence-pack:v1`, and observes only the product origin. The licence fixture remains an intercepted recorded response; no live spend occurs.
+- Response policy source review: `public/staticwebapp.config.json` retains same-origin CSP with the explicit Sociobot licence endpoint, strict referrer policy, `nosniff`, restrictive permissions policy, immutable hashed assets, and SPA fallback.
+- Lighthouse 12.8.2 mobile simulation against the production preview: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.3 s, TBT 40 ms, CLS 0. Report: `/tmp/mtd-lighthouse.json` in the repair worker.
 
-Lighthouse 12.8.2 mobile simulation on the production build:
+## Deployment and known gaps
 
-- Performance: 100
-- Accessibility: 100
-- Best practices: 100
-- SEO: 100
-- LCP: 1.2 s
-- CLS: 0
-- Total blocking time: 0 ms
+The work order specifies static deployment from `dist/`. Pushing `main` is the available deployment trigger; verify the live origin serves the repaired `v1.0.1` cache after the factory static deployment completes. No infrastructure, DNS, billing product, or payment-provider changes were made.
 
-Build budgets:
-
-- Initial JavaScript: 12.82 KB gzip
-- Initial CSS: 4.99 KB gzip
-- Lazy ZIP module: 54.45 KB gzip
-- Mobile hero: 13 KB; desktop hero: 36 KB
-
-## Privacy and data boundaries
-
-Real work uses only local IndexedDB. Demo work uses memory and never opens that database. The app has no analytics, remote fonts, bank calls, or HMRC calls. Licence verification sends only the pasted token to `api.sociobot.in`. No HMRC credentials are requested or stored.
-
-## Known gaps and next steps
-
-- This intentionally does not submit to HMRC, calculate tax, connect to banks, or certify records.
-- Checklist v1.0 is a 2026–27 working evidence checklist. The user must confirm it with their accountant or filing software.
-- The factory must register the `mtd-evidence-pack` product and £24 price before checkout can complete in production.
-- Lighthouse does not report lab INP without interaction; total blocking time was 0 ms and browser interaction tests passed.
-- Some older ZIP tools do not open AES-encrypted archives. Current 7-Zip, WinZip, and other AES-capable tools do.
-
-No deployment, DNS, billing registration, or infrastructure was changed from this repository.
+The product intentionally remains a records-preparation tool. The factory brief's HMRC submission, tax-advice, bank-aggregation, and certification non-goals remain out of scope.
