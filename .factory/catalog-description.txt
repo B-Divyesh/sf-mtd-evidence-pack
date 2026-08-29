@@ -1,1 +1,1 @@
-Prepare quarterly evidence packs from categorised bookkeeping records, source files, and a checked period.
+Build a quarterly evidence pack from local bookkeeping records, source files, and a checked period.

@@ -34,7 +34,7 @@ Import records, maintain the checklist, attach source files, and export an encry
 
 ## Develop
 
-Requires Node.js 20 or newer.
+Requires Node.js 20.19+ or 22.12+.
 
 ```sh
 npm install
@@ -68,6 +68,6 @@ CSV headers are `date,description,amount,category,reference`. Dates use `YYYY-MM
 
 The importer rejects invalid calendar dates, missing amounts, and records outside the selected period. Valid imports add records without replacing earlier records.
 
-## Licence
+## Source code licence
 
 MIT. See [LICENSE](LICENSE).

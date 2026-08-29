@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited 29 August 2026 for release 1.0.11. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026 for release 1.0.12. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
 | Copy | Words | Result |
 |---|---:|---|
@@ -56,7 +56,7 @@ Audited 29 August 2026 for release 1.0.11. Counts treat hyphenated terms as one 
 | Prepare a quarterly evidence pack on your device. | 8 | Product footer summary |
 | Hero artwork was generated for this product. | 7 | Image provenance disclosure |
 | Built by Param Factory (external site) | 6 | Clear external link |
-| v1.0.11 | 1 | Build identifier |
+| v1.0.12 | 1 | Build identifier |
 
 ## Round-four README copy
 
@@ -66,6 +66,13 @@ Audited 29 August 2026 for release 1.0.11. Counts treat hyphenated terms as one 
 | See the in-product Privacy page to learn how to delete local data and how licence checks work. | 17 | Concrete privacy instruction |
 | The app, sample, and encrypted export work offline after the first visit. | 12 | `offline-reload` |
 | If your browser offers Install, use it to open the tool in its own window. | 14 | `standalone-install` |
+
+## Round-five README copy
+
+| Copy | Words | Result |
+|---|---:|---|
+| Requires Node.js 20.19+ or 22.12+. | 5 | `node-runtime` |
+| Source code licence | 3 | Clear heading |
 
 ## First-screen read-aloud check
 

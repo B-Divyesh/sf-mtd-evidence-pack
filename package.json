@@ -1,13 +1,17 @@
 {
   "name": "mtd-evidence-pack",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "tsc --noEmit",
     "verify:url": "bash scripts/verify-url.sh",
+    "verify:node-runtime": "bash scripts/verify-node-runtime.sh",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run --config vitest.config.ts && playwright test",
     "test:unit": "vitest run --config vitest.config.ts",

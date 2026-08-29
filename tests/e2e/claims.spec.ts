@@ -1,7 +1,11 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { execFile as execFileCallback } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { promisify } from "node:util";
 import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
+
+const execFile = promisify(execFileCallback);
 
 async function tabTo(page: Page, target: Locator): Promise<void> {
   for (let attempt = 0; attempt < 80; attempt += 1) {
@@ -274,9 +278,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.11");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.12");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.11");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.12");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -298,8 +302,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toHaveText("v1.0.11");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.11");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.12");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.12");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -391,7 +395,7 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await expect(page.getByText("Works offline after your first visit", { exact: true })).toBeVisible();
   await expect(page.locator(".steps li").last()).toContainText("Download one password-protected ZIP with records, a PDF summary, source files, and file-change checks.");
   await expect(page.getByText("Loads 12 records, 3 source files, and one open check. Nothing is saved.", { exact: true })).toBeVisible();
-  await expect(page.locator(".build-id")).toHaveText("v1.0.11");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.12");
   for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff", "Core pack export is free", "Keep the core pack free", "Works after your first visit", "Download one password-protected ZIP with CSV, PDF, files, and hashes."]) {
     await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
   }
@@ -415,6 +419,9 @@ test("README links directly to the live product Privacy page", async () => {
   expect(readme).toContain("to learn how to delete local data and how licence checks work");
   expect(readme).toContain("If your browser offers Install, use it to open the tool in its own window.");
   expect(readme).toContain("file-change checks (SHA-256)");
+  expect(readme).toContain("Requires Node.js 20.19+ or 22.12+.");
+  expect(readme).toContain("## Source code licence");
+  expect(readme).not.toContain("## Licence\n");
   expect(readme).not.toContain("browser-data controls");
   expect(readme).not.toContain("supporting browser");
   expect(readme).not.toContain("standalone window");
@@ -444,7 +451,7 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.11");
+  expect(manifest.start_url).toBe("/?v=1.0.12");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -568,11 +575,11 @@ test("app routes update title, description, and canonical metadata", async ({ pa
   }
 });
 
-test("all product routes have no serious accessibility violations", async ({ page }) => {
+test("all product routes have no accessibility violations", async ({ page }) => {
   for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms", "/missing-page"]) {
     await page.goto(path);
     const results = await new AxeBuilder({ page: page as never }).analyze();
-    expect(results.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? "")), path).toEqual([]);
+    expect(results.violations, path).toEqual([]);
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(page.locator("main")).toHaveCount(1);
   }
@@ -681,11 +688,11 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   await page.getByRole("button", { name: "Reset demo" }).focus();
   await expect(page.getByRole("button", { name: "Reset demo" })).toBeFocused();
   const results = await new AxeBuilder({ page: page as never }).analyze();
-  expect(results.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
+  expect(results.violations).toEqual([]);
   await page.goto("/workspace");
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
   const workspaceResults = await new AxeBuilder({ page: page as never }).analyze();
-  expect(workspaceResults.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
+  expect(workspaceResults.violations).toEqual([]);
 
   await page.goto("/privacy");
   const emailBox = await page.getByRole("link", { name: "privacy@sociobot.in" }).boundingBox();
@@ -713,6 +720,17 @@ test("@claim:artwork-provenance public footers disclose that the hero artwork wa
     await page.goto(path);
     await expect(page.locator(".art-credit")).toHaveText("Hero artwork was generated for this product.");
   }
+});
+
+test("@claim:node-runtime runs a clean install and production build at the lowest supported Node.js version", async () => {
+  test.setTimeout(240_000);
+  const { stdout } = await execFile("bash", ["scripts/verify-node-runtime.sh"], {
+    cwd: process.cwd(),
+    timeout: 225_000
+  });
+  expect(stdout).toContain("Verified clean install and production build with Node v20.19.0.");
+  const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
+  expect(readme).toContain("Requires Node.js 20.19+ or 22.12+.");
 });
 
 test("@mobile 200% text reflows without horizontal overflow and keeps the home target usable", async ({ page }) => {

@@ -110,5 +110,12 @@
     "where": "landing and 404 footers",
     "test": "npm run test:e2e -- --grep @claim:artwork-provenance",
     "sandbox": "fresh context begins at /demo and checks the public landing and designed 404 footer disclosure"
+  },
+  {
+    "id": "node-runtime",
+    "claim": "Requires Node.js 20.19+ or 22.12+",
+    "where": "README and package metadata",
+    "test": "npm run test:e2e -- --grep @claim:node-runtime",
+    "sandbox": "fresh clone; use Node 20.19.0, the lower supported version, to run npm ci and npm run build"
   }
 ]
