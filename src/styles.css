@@ -27,24 +27,24 @@ a:hover { text-decoration-thickness: .14em; }
 button { color: inherit; }
 img { display: block; max-width: 100%; height: auto; }
 h1, h2, h3, p { margin-top: 0; }
-h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.04; letter-spacing: -.025em; }
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.04; letter-spacing: -.025em; overflow-wrap: anywhere; }
 h1 { margin-bottom: 24px; font-size: clamp(3rem, 7.2vw, 5.8rem); max-width: 12ch; }
 h1:focus { outline: 0; }
 h2 { margin-bottom: 16px; font-size: clamp(2rem, 4.2vw, 3.5rem); max-width: 16ch; }
 h3 { margin-bottom: 8px; font-size: 1.3rem; }
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--danger); outline-offset: 3px; }
 button:disabled, input:disabled, textarea:disabled { cursor: not-allowed; opacity: .52; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .skip-link { position: fixed; z-index: 100; top: 8px; left: 8px; transform: translateY(-150%); padding: 12px 16px; color: var(--ink); background: var(--acid); font-weight: 800; }
 .skip-link:focus { transform: none; }
 
-.site-header { min-height: 88px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 32px; padding: 16px max(24px, calc((100vw - 1280px) / 2)); border-bottom: 1px solid var(--rule); }
-.wordmark { display: inline-flex; width: max-content; gap: 10px; align-items: center; font-weight: 850; font-size: .82rem; line-height: 1; text-decoration: none; text-transform: uppercase; letter-spacing: .08em; }
+.site-header { min-height: 88px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 32px; padding: 16px max(24px, calc((100vw - 1280px) / 2)); border-bottom: 1px solid var(--rule); }
+.wordmark { min-height: 44px; display: inline-flex; width: max-content; gap: 10px; align-items: center; font-weight: 850; font-size: .82rem; line-height: 1; text-decoration: none; text-transform: uppercase; letter-spacing: .08em; }
 .moon-mark { position: relative; width: 40px; height: 40px; border-radius: 50%; background: var(--acid); box-shadow: inset -11px -7px 0 var(--ink); }
-.site-header nav, .site-footer nav { display: flex; gap: 24px; align-items: center; }
+.site-header nav, .site-footer nav { min-width: 0; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
 .site-header nav a, .site-footer nav a { min-height: 44px; display: inline-flex; align-items: center; font-weight: 700; }
 .network-state { font-size: .78rem; font-weight: 800; border: 1px solid currentColor; padding: 6px 9px; text-transform: uppercase; letter-spacing: .06em; }
-main { overflow: clip; }
+main { min-width: 0; }
 .eyebrow { margin-bottom: 16px; font-size: .76rem; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
 .button, .file-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--ink); border-radius: 6px; padding: 10px 18px; background: var(--paper-light); font-weight: 850; line-height: 1.1; text-decoration: none; box-shadow: var(--shadow); cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease; }
 .button:hover, .file-button:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
@@ -98,6 +98,10 @@ main { overflow: clip; }
 .pricing { display: grid; grid-template-columns: 1fr 400px; gap: 80px; align-items: start; }
 .price-ticket { padding: 32px; color: var(--ink); background: var(--coral); border: 2px solid var(--ink); box-shadow: 9px 9px 0 var(--ink); }
 .price-ticket h3 { font-size: 1.8rem; }
+.price { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: 3.4rem; font-weight: 900; line-height: 1; }
+.price span { font-size: .54em; vertical-align: top; }
+.price-ticket details { margin-top: 16px; }
+.price-ticket summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 800; }
 .price-ticket .button { width: 100%; margin-top: 12px; }
 .restore-form { display: grid; gap: 8px; padding-top: 12px; }
 .fine-print { margin: 8px 0 0; font-size: .8rem; }
@@ -113,7 +117,7 @@ main { overflow: clip; }
 .readiness-gauge { display: flex; flex-direction: column; justify-content: center; }
 .readiness-gauge strong { font-family: Georgia, serif; font-size: 3.5rem; line-height: 1; }
 .readiness-gauge progress { width: 100%; height: 10px; margin-top: 12px; accent-color: var(--acid); }
-.quarter-overview dl { display: grid; grid-template-columns: repeat(3, 1fr); align-content: center; margin: 0; }
+.quarter-overview dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; margin: 0; }
 .quarter-overview dl div { padding: 0 12px; border-left: 1px solid rgba(255,255,255,.3); }
 .quarter-overview dt { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
 .quarter-overview dd { margin: 0; font-family: Georgia, serif; font-size: 2rem; }
@@ -158,7 +162,7 @@ td small { color: var(--ink-soft); }
 .checklist label { position: relative; min-height: 60px; display: flex; flex: 1; gap: 14px; align-items: center; cursor: pointer; }
 .checklist input { position: absolute; z-index: 2; top: 50%; left: 0; width: 27px; min-height: 27px; height: 27px; margin: 0; opacity: 0; transform: translateY(-50%); cursor: pointer; }
 .check-box { width: 27px; height: 27px; flex: 0 0 27px; border: 2px solid var(--ink); background: var(--paper-light); transition: transform 160ms ease, background 160ms ease; }
-.checklist input:focus-visible + .check-box { outline: 3px solid var(--coral); outline-offset: 3px; }
+.checklist input:focus-visible + .check-box { outline: 3px solid var(--danger); outline-offset: 3px; }
 .checklist input:checked + .check-box { background: var(--acid); box-shadow: inset 0 0 0 5px var(--paper-light); transform: rotate(-4deg) scale(.94); }
 .checklist label small { display: inline-block; margin-left: 6px; color: var(--ink-soft); font-weight: 600; }
 .inline-form { margin-left: 80px; }
@@ -217,7 +221,7 @@ td small { color: var(--ink-soft); }
   h1 { font-size: 3.15rem; }
   .site-header { min-height: 120px; padding: 12px 20px; }
   .site-header { grid-template-columns: 1fr; }
-  .site-header nav { grid-column: 1; gap: 20px; }
+  .site-header nav { grid-column: 1; gap: 12px 20px; }
   .site-header nav a { font-size: .88rem; }
   .wordmark { font-size: .7rem; }
   .moon-mark { width: 32px; height: 32px; }

@@ -26,11 +26,11 @@ Send the ZIP password through a different channel. The password is never saved.
 
 See the in-product [Privacy](/privacy) page for browser-data controls and licence checks.
 
-The app shell and sample work after the first visit. Install it from a supporting browser for a standalone window.
+The app shell, sample, and encrypted export work after the first visit. Install it from a supporting browser for a standalone window.
 
 ## Supported edition
 
-The core import, checklist maintenance, attachments, and encrypted export are free. Existing licence holders can restore saved cover notes. Licence verification uses the Sociobot billing API.
+The core import, checklist maintenance, attachments, and encrypted export are free. A £24 one-time purchase adds saved cover notes. [Buy the supported edition](https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout). Checkout and licence verification use the Sociobot billing API; no payment provider is embedded here. Existing licence holders can paste a token to restore it.
 
 ## Develop
 
@@ -60,13 +60,13 @@ npm run test:e2e -- --grep @claim:offline-reload
 
 ## Deploy
 
-Deploy the contents of `dist/` to a static host with SPA fallbacks. `public/staticwebapp.config.json` supplies the fallback, security headers, and asset policy for Azure Static Web Apps.
+Deploy the contents of `dist/` to Azure Static Web Apps. `public/staticwebapp.config.json` supplies the explicit product routes, designed 404 response, security headers, and asset policy.
 
 ## Data format
 
 CSV headers are `date,description,amount,category,reference`. Dates use `YYYY-MM-DD`. Income is positive and expenses are negative. The `reference` column is optional.
 
-The importer rejects invalid calendar dates and missing amounts before replacing records.
+The importer rejects invalid calendar dates and missing amounts. Valid imports add records without replacing earlier records.
 
 ## Licence
 

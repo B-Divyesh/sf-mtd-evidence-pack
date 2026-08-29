@@ -23,7 +23,36 @@
     <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <a class="skip-link" href="#main">Skip to main content</a>
+      <header class="site-header">
+        <a class="wordmark" href="/" data-link aria-label="MTD Evidence Pack home"><span class="moon-mark" aria-hidden="true"></span><span>MTD<br>Evidence Pack</span></a>
+        <nav aria-label="Main navigation">
+          <a href="/demo" data-link>Demo</a><a href="/workspace" data-link>Workspace</a><a href="/privacy" data-link>Privacy</a>
+        </nav>
+        <span class="network-state" data-network>Online</span>
+      </header>
+      <main id="main" tabindex="-1">
+        <section class="hero editorial-grid">
+          <div class="hero-copy paper-rise">
+            <p class="eyebrow">Local quarterly record check</p>
+            <h1>Prepare your quarterly evidence handoff</h1>
+            <p class="lede">For UK sole traders who keep local books and need a clear pack for an accountant or filing software.</p>
+            <div class="hero-action"><a class="button primary" href="/demo" data-link>Try it with sample data</a><span>Loads one sample quarter. Nothing is saved.</span></div>
+            <ul class="plain-facts" aria-label="Product facts"><li>Works after your first visit</li><li>Records stay on this device</li><li>Core pack export is free</li></ul>
+          </div>
+          <figure class="hero-art paper-rise"><picture><source media="(max-width: 700px)" srcset="/assets/hero-ledger-390.webp"><img src="/assets/hero-ledger.webp" width="1280" height="853" alt="Four paper filing houses connected by a coral path under a paper moon." fetchpriority="high" decoding="async"></picture><figcaption>Four quarters. One traceable path through the source records.</figcaption></figure>
+        </section>
+        <section class="preview-section" aria-labelledby="preview-title"><div class="section-number">Field note 01</div><div><p class="eyebrow">The product itself</p><h2 id="preview-title">See what is missing before handoff</h2><p>The checklist and records stay beside each other. Open items remain named.</p></div>
+          <div class="mini-workspace"><div class="mini-head"><strong>Quarter 1 · 2026–27</strong><span>6 of 7 checked</span></div><div class="mini-grid"><div><span class="large-number">12</span><span>bookkeeping records</span></div><div><span class="large-number">3</span><span>source files</span></div><div class="open-item"><span aria-hidden="true">○</span><span>Invoices and receipts can be matched to records</span></div></div></div>
+        </section>
+        <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes.</p></div></li></ol></section>
+        <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">A boundary, kept clear</p><h2 id="limits-title">Prepare records for the next handoff</h2></div><p>Use compatible filing software or an accountant when you are ready to submit. Confirm checklist changes with them.</p></section>
+        <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Supported edition</p><h2 id="licence-title">Keep the core pack free</h2><p>Import records, maintain your checklist, and export the encrypted pack without paying.</p></div><div class="price-ticket"><p class="price"><span>£</span>24</p><h3>Save cover notes</h3><p>One payment adds saved cover notes. The core pack remains free.</p><a class="button secondary" href="https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout">Buy the supported edition</a><details><summary>Have a licence?</summary><form method="get" action="/workspace" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></details><p class="fine-print">One-time purchase. Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></div></section>
+      </main>
+      <footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.5 · Generated art disclosed</p></footer>
+      <div class="live-region" aria-live="polite" aria-atomic="true"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

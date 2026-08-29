@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited 28 August 2026. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
 | Copy | Words | Flag |
 |---|---:|---|
@@ -32,10 +32,16 @@ Audited 28 August 2026. Counts treat hyphenated terms as one word. No line excee
 | Confirm checklist changes with them. | 5 | — |
 | Keep the core pack free | 5 | — |
 | Import records, maintain your checklist, and export the encrypted pack without paying. | 10 | — |
-| Restore an existing licence | 4 | — |
-| A verified licence adds saved cover notes. | 6 | — |
+| Save cover notes | 3 | — |
+| One payment adds saved cover notes. | 6 | — |
+| The core pack remains free. | 5 | — |
+| Buy the supported edition | 4 | — |
+| Have a licence? | 4 | — |
 | Paste your licence | 3 | — |
 | Verify licence | 2 | — |
+| One-time purchase. | 2 | — |
+| Sociobot/Dodo is the merchant of record. | 6 | — |
+| Refunds are handled there. | 4 | — |
 
 ## First-screen read-aloud check
 
@@ -54,3 +60,4 @@ The job, user, outcome, and first action fit in one short breath.
 | Completion control | checklist item |
 | Sample environment | demo |
 | Paid entitlement | licence |
+| Paid option | supported edition |

@@ -1,60 +1,89 @@
-# Handoff — independent verification 5
+# Handoff — repair 5 implementation
 
 - Date: 29 August 2026
-- Work order: `mtd-evidence-pack-verify-5`
-- Candidate: `cabc2ea4ad7d7bf806adec6e7c38cc8fb22bcfb0`
-- Live URL: <https://mtd-evidence-pack.sociobot.in>
+- Work order: `mtd-evidence-pack-repair-5`
+- Base verified failure: `cabc2ea4ad7d7bf806adec6e7c38cc8fb22bcfb0`
+- Source verification: `.factory/verification-5.md`
+- Artifact: local-first static PWA (`dist/`)
 
 ## Status
 
-**FAIL — do not release.** The live site is byte-for-byte the candidate, but
-the clean full test gate fails and three additional high-severity product
-defects remain. This is not a deployment-only result.
+The repository repair is buildable and all local product gates pass. Deployment
+and live retest are the remaining steps for this work order.
 
-## Release blockers
+One external release dependency remains: at 11:11 UTC on 29 August the
+factory-owned `https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout`
+endpoint still returned `404 {"error":"enabled factory product","status":404}`.
+The product now has the required £24 one-time-purchase UI, exact hosted-checkout
+URL, return-token storage, daily verification, restore field, terms, and a
+recorded checkout/return regression test. Enabling that Sociobot product is a
+billing operation outside this static-product repository; it must be enabled
+before the purchase path can pass a live release check.
 
-1. `npm test` fails the checked-in mobile blocking-time assertion: 221 ms
-   measured against ≤200 ms. Focused retries also fail at 300, 318, and 296 ms;
-   the live suite fails at 220 ms.
-2. Offline reload works, but first-visit offline export does not. The service
-   worker omits lazy export/ZIP chunks. With the origin stopped, export gives
-   `net::ERR_FAILED`, no download, and an in-product failure message.
-3. A second valid CSV silently replaces all existing records without warning,
-   confirmation, or undo.
-4. The required one-time purchase cannot be made. The Sociobot checkout URL
-   returns 404, and the UI has no price or buy action.
+## Repairs
 
-## What passed
+1. **Stable mobile performance.** The landing page is now real, semantic HTML
+   with a 1.86 kB gzip bootstrap. The 10.35 kB gzip workspace code loads only
+   after navigation. Three fresh 4×-CPU focused runs measured 111 ms, 91 ms,
+   and 131 ms total blocking time (limit: 200 ms).
+2. **Complete first-visit offline export.** Vite emits `asset-manifest.json`.
+   The versioned service worker caches every manifest chunk, including the
+   deferred export and ZIP chunks. The offline claim now reloads `/demo` with
+   networking disabled and downloads `evidence-pack-2026-07-05.zip`.
+3. **Non-destructive CSV imports.** A valid file appends records instead of
+   replacing the current table. The message reports added and total records;
+   the regression imports two files and proves the original sample row remains.
+4. **Purchase flow restored in the client.** The £24 one-time supported edition
+   adds saved cover notes without gating core data, checklist, export, or
+   accessibility. It links only to the prescribed Sociobot checkout endpoint,
+   stores returned `?license=` tokens locally, verifies them, and supports token
+   restoration on both the landing page and workspace.
+5. **Accessibility and route recovery.** The focus outline is now danger ink
+   (`#8D332E`): 6.69:1 on paper and 6.26:1 on the acid primary action. The
+   wordmark has a 44 px target; wrapping/min-width fixes eliminate 200% text
+   overflow at 390 px. Azure Static Web Apps receives explicit known-route
+   rewrites and a designed `404.html` response override for unknown paths.
+6. **Claims.** Added tagged observable coverage for readiness, standalone PWA
+   installation metadata, the checkout/return flow, retained CSV imports, and
+   complete offline export. All public claims now have an entry in
+   `.factory/claims.json`.
 
-- The mandatory cold first read passes: the first screen states the job, the UK
-  sole-trader audience, and the one-click sample-data action.
-- All nine exact `.factory/claims.json` commands pass when run individually.
-- `npm run lint`, `npm run build`, `npm audit --omit=dev`, and the live URL smoke
-  test pass. The build creates `dist/`.
-- The representative online flow imports boundary records, attaches a source,
-  saves a custom check, recovers from password mismatch, exports a valid
-  encrypted ZIP, and confirms/cancels local deletion.
-- Live requests during that flow are same-origin only; there are no console or
-  page errors.
-- Axe reports zero serious/critical issues on all public routes. Normal 390 px
-  layout, keyboard flow, visible focus, and reduced motion work.
-- Lighthouse 12.8.2 live mobile performance scores are 99/98/97; entry JS is
-  11.15 kB gzip, CSS 4.80 kB gzip, and the mobile hero is 4,874 bytes.
-- Security headers and immutable hashed-asset caching are live.
-- Licence verification allows 30 requests per client window; request 31 returns
-  429 with `Retry-After: 4`.
-- All 21 public production files match local `dist/` by SHA-256.
+## Local verification
 
-## Other findings
+- `npm ci` — passed: 62 packages added; 0 vulnerabilities.
+- Each of the 12 exact commands in `.factory/claims.json` — passed separately.
+- `npm run lint` — passed (`tsc --noEmit`).
+- `npm test` — passed: 7 Vitest tests and 23 Playwright checks.
+- `npm run build` — passed and produced `dist/index.html`.
+- `npm audit --omit=dev` — passed: 0 vulnerabilities.
+- `npm run verify:url -- http://127.0.0.1:4174` — passed: title, `en-GB`, one
+  h1, main landmark, alt text, labelled buttons, and no browser errors.
+- Playwright Axe scans on `/`, `/demo`, `/workspace`, `/privacy`, `/terms`, and
+  the application not-found route — zero serious or critical violations.
+- Keyboard checks pass for skip navigation, client-route focus transfer, and
+  Space-operated checklist items. The dedicated 390 px + 200% text check has
+  no horizontal overflow and verifies the 44 px home target.
+- Offline/update checks pass: `/demo` reloads offline, exports encrypted ZIP
+  offline, and the versioned update announcement appears.
+- Lighthouse 12.8.2 mobile production-preview runs: performance 100/100/100,
+  accessibility 100/100/100, best practices 100/100/100, SEO 100/100/100;
+  LCP 1.047/0.905/1.506 s, CLS 0/0/0, TBT 5.6/0/0 ms.
 
-- Primary focus-ring contrast is 2.69:1 against paper (required 3:1).
-- Simulated 200% text creates 51 px horizontal overflow on every route.
-- The mobile home/wordmark link is 32 px high, below the 44 px target baseline.
-- The designed missing-page route returns HTTP 200 instead of 404.
-- Readiness and installability wording lacks matching tagged claim coverage;
-  the offline claim test proves only reload, not completion of the core job.
+The standalone Axe CLI could not launch in this worker because its Selenium
+launcher could not locate Chrome. The repository's Playwright
+`@axe-core/playwright` scans are the recorded accessibility gate and passed on
+every product route.
 
-Full commands, evidence, severity, hashes, and retest criteria are in
-[`.factory/verification-5.md`](verification-5.md).
+## Deployment and retest
 
-Only verification documentation was changed. Product code was not modified.
+Run the static deployment from this work order after committing this repair:
+
+```sh
+npm ci && npm test && npm run build
+/opt/fleet/lib/deploy-static.sh mtd-evidence-pack dist
+```
+
+Then verify the live URL, static response headers, real 404 status, offline
+export, candidate/live file hashes, and the checkout redirect. The live
+checkout is expected to remain blocked until the factory enables the product
+record described above.

@@ -15,7 +15,7 @@ test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
 });
 
-test("@claim:csv-import rejects impossible dates and missing amounts, then imports a valid CSV", async ({ page }) => {
+test("@claim:csv-import rejects impossible dates and missing amounts, then safely adds valid CSV records", async ({ page }) => {
   await page.goto("/demo");
   await page.locator("[data-import-csv]").setInputFiles({
     name: "invalid-quarter.csv", mimeType: "text/csv",
@@ -29,9 +29,17 @@ test("@claim:csv-import rejects impossible dates and missing amounts, then impor
     name: "quarter.csv", mimeType: "text/csv",
     buffer: Buffer.from("date,description,amount,category,reference\n2026-04-10,Oak Studio invoice,400,Sales,I-1\n2026-04-11,Printer paper,-20,Office costs,R-1\n")
   });
-  await expect(page.locator(".message.success").getByText("2 records imported.")).toBeVisible();
+  await expect(page.locator(".message.success").getByText("2 records added. 14 total.")).toBeVisible();
   await expect(page.getByText("Oak Studio invoice")).toBeVisible();
   await expect(page.getByText("Printer paper")).toBeVisible();
+  await expect(page.getByText("North Street Studio invoice 1042")).toBeVisible();
+  await page.locator("[data-import-csv]").setInputFiles({
+    name: "second-import.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category,reference\n2026-04-12,Second retained record,55,Sales,I-2\n")
+  });
+  await expect(page.locator(".message.success").getByText("1 record added. 15 total.")).toBeVisible();
+  await expect(page.getByText("North Street Studio invoice 1042")).toBeVisible();
+  await expect(page.getByText("Second retained record")).toBeVisible();
 });
 
 test("@claim:source-file-size accepts 10 MB and rejects 10 MB plus one byte", async ({ page }) => {
@@ -124,24 +132,39 @@ test("@claim:local-only records entered after the demo stay in IndexedDB and mak
   expect([...origins]).toEqual([new URL(page.url()).origin]);
 });
 
-test("@claim:offline-reload opens the sample workspace offline after one visit", async ({ page, context }) => {
+test("@claim:offline-reload completes a sample encrypted export offline after one visit", async ({ page, context }) => {
   await page.goto("/demo");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.4");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.5");
+  await expect.poll(() => page.evaluate(async () => {
+    const cache = await caches.open("mtd-evidence-pack-v1.0.5");
+    const manifestResponse = await cache.match("/asset-manifest.json");
+    if (!manifestResponse) return false;
+    const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
+    const required = Object.values(manifest).flatMap(entry => [entry.file, ...(entry.css ?? []), ...(entry.assets ?? [])]);
+    return Promise.all(required.map(asset => cache.match(`/${asset}`))).then(responses => responses.every(Boolean));
+  })).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
   await expect(page.locator('[name="traderName"]')).toHaveValue("Rowan Field Studio");
+  await page.locator("#pack-password").fill("offline-horse-26");
+  await page.locator("#pack-password-confirm").fill("offline-horse-26");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export encrypted ZIP" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("evidence-pack-2026-07-05.zip");
+  expect(await download.path()).not.toBeNull();
 });
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.4");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.4");
+  await expect(page.locator(".build-id")).toContainText("v1.0.5");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.5");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -175,17 +198,46 @@ test("@claim:paid-license a verified licence enables saved cover notes", async (
   await expect(page.locator("#cover-note")).toBeEnabled();
 });
 
-test("unavailable checkout is not advertised on any public route", async ({ page }) => {
-  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) {
-    await page.goto(path);
-    await expect(page.locator('a[href*="/checkout"]'), path).toHaveCount(0);
-    await expect(page.getByText("Buy the supported edition", { exact: true }), path).toHaveCount(0);
-    await expect(page.getByText("£24", { exact: true }), path).toHaveCount(0);
-  }
+test("@claim:paid-checkout sends a buyer to hosted checkout and accepts its returned licence", async ({ page }) => {
+  await page.goto("/");
+  const productOrigin = new URL(page.url()).origin;
+  await page.route("https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout", route => route.fulfill({
+    status: 302,
+    headers: { location: `${productOrigin}/workspace?license=checkout-return-token` }
+  }));
+  await page.route("https://api.sociobot.in/**/verify?license=checkout-return-token", route => route.fulfill({
+    status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" })
+  }));
+  await expect(page.getByText("£24", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Buy the supported edition" })).toHaveAttribute("href", "https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout");
+  await page.getByRole("link", { name: "Buy the supported edition" }).click();
+  await expect(page).toHaveURL(/\/workspace$/);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("sb_license:mtd-evidence-pack"))).toBe("checkout-return-token");
+  await expect(page.locator("#cover-note")).toBeEnabled();
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
-  expect(readme).not.toContain("/checkout");
-  expect(readme).not.toContain("£24");
-  expect(readme).not.toContain("one-time purchase");
+  expect(readme).toContain("£24 one-time purchase");
+  expect(readme).toContain("/checkout");
+});
+
+test("@claim:readiness names every open checklist item before export", async ({ page }) => {
+  await page.goto("/demo");
+  await expect(page.getByRole("heading", { level: 3, name: "1 open item" })).toBeVisible();
+  await expect(page.locator(".gaps")).toContainText("Invoices and receipts can be matched to records");
+  await page.locator('[data-check="receipts"]').check();
+  await expect(page.getByRole("heading", { level: 3, name: "Ready to hand over" })).toBeVisible();
+});
+
+test("@claim:standalone-install supplies a standalone PWA manifest", async ({ page }) => {
+  await page.goto("/");
+  const manifest = await page.evaluate(async () => await (await fetch("/manifest.webmanifest")).json() as {
+    display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
+  });
+  expect(manifest.display).toBe("standalone");
+  expect(manifest.start_url).toBe("/?v=1.0.5");
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ sizes: "192x192" }),
+    expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
+  ]));
 });
 
 test("@performance mobile landing keeps blocking work within 200ms", async ({ page }) => {
@@ -231,6 +283,19 @@ test("all built assets receive the immutable cache policy", async () => {
   };
   const assets = config.routes.find(route => route.route === "/assets/*");
   expect(assets?.headers?.["Cache-Control"]).toBe("public, max-age=31536000, immutable");
+});
+
+test("static-host routing keeps product paths and returns the designed 404 page for unknown paths", async () => {
+  const config = JSON.parse(await readFile(new URL("../../public/staticwebapp.config.json", import.meta.url), "utf8")) as {
+    routes: Array<{ route: string; rewrite?: string }>;
+    navigationFallback?: unknown;
+    responseOverrides?: Record<string, { rewrite?: string }>;
+  };
+  expect(config.navigationFallback).toBeUndefined();
+  expect(config.routes.filter(route => route.rewrite === "/index.html").map(route => route.route)).toEqual(["/", "/demo", "/workspace", "/privacy", "/terms"]);
+  expect(config.responseOverrides?.["404"]?.rewrite).toBe("/404.html");
+  const missing = await readFile(new URL("../../public/404.html", import.meta.url), "utf8");
+  expect(missing).toContain("This page is not in the pack");
 });
 
 test("all product routes have no serious accessibility violations", async ({ page }) => {
@@ -284,4 +349,18 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
   const workspaceResults = await new AxeBuilder({ page: page as never }).analyze();
   expect(workspaceResults.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
+});
+
+test("@mobile 200% text reflows without horizontal overflow and keeps the home target usable", async ({ page }) => {
+  await page.goto("/demo");
+  await page.evaluate(() => document.documentElement.style.fontSize = "200%");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  const home = page.getByRole("link", { name: "MTD Evidence Pack home" });
+  const box = await home.boundingBox();
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+  await home.focus();
+  await expect(home).toBeFocused();
+  expect(await home.evaluate(element => getComputedStyle(element).outlineColor)).toBe("rgb(141, 51, 46)");
 });

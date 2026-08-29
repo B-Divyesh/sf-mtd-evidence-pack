@@ -8,10 +8,10 @@
   },
   {
     "id": "csv-import",
-    "claim": "Imports valid categorised CSV records and rejects invalid dates or amounts",
+    "claim": "Adds valid categorised CSV records without replacing earlier records and rejects invalid dates or amounts",
     "where": "workspace and README",
     "test": "npm run test:e2e -- --grep @claim:csv-import",
-    "sandbox": "demo workspace; reject an overflow date and blank or whitespace amount, then import a two-row valid CSV"
+    "sandbox": "demo workspace; reject an overflow date and blank or whitespace amount, then import two valid CSV files and assert each earlier record remains"
   },
   {
     "id": "source-file-size",
@@ -46,7 +46,7 @@
     "claim": "Works after your first visit",
     "where": "landing and README",
     "test": "npm run test:e2e -- --grep @claim:offline-reload",
-    "sandbox": "fresh browser context at /demo; wait for service worker, go offline, reload, and assert sample records"
+    "sandbox": "fresh browser context at /demo; wait for every production chunk to cache, go offline, reload, and download a complete encrypted sample pack"
   },
   {
     "id": "custom-checklist",
@@ -54,6 +54,27 @@
     "where": "workspace and README",
     "test": "npm run test:e2e -- --grep @claim:custom-checklist",
     "sandbox": "fresh browser context at /demo; start a real unlicensed workspace, add a custom check, reload, and assert it remains"
+  },
+  {
+    "id": "readiness",
+    "claim": "See what is missing before handoff",
+    "where": "landing preview and export panel",
+    "test": "npm run test:e2e -- --grep @claim:readiness",
+    "sandbox": "fresh demo; assert the one named open checklist item is shown, complete it, and assert the ready state"
+  },
+  {
+    "id": "standalone-install",
+    "claim": "Install it from a supporting browser for a standalone window",
+    "where": "README",
+    "test": "npm run test:e2e -- --grep @claim:standalone-install",
+    "sandbox": "fresh landing page; inspect the shipped manifest display mode, start URL, and 192/512 icons"
+  },
+  {
+    "id": "paid-checkout",
+    "claim": "A £24 one-time purchase adds saved cover notes",
+    "where": "pricing, terms, and README",
+    "test": "npm run test:e2e -- --grep @claim:paid-checkout",
+    "sandbox": "fresh landing page; intercept the prescribed hosted checkout return and recorded licence verification, then assert saved cover notes unlock"
   },
   {
     "id": "paid-license",

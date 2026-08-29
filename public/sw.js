@@ -1,11 +1,15 @@
-const VERSION = "mtd-evidence-pack-v1.0.4";
-const SHELL = ["/", "/demo", "/workspace", "/privacy", "/terms", "/offline.html", "/favicon.svg", "/manifest.webmanifest", "/assets/hero-ledger.webp", "/assets/hero-ledger-390.webp"];
+const VERSION = "mtd-evidence-pack-v1.0.5";
+const SHELL = ["/", "/demo", "/workspace", "/privacy", "/terms", "/offline.html", "/favicon.svg", "/manifest.webmanifest", "/asset-manifest.json", "/assets/hero-ledger.webp", "/assets/hero-ledger-390.webp"];
 self.addEventListener("install", event => event.waitUntil((async () => {
   const cache = await caches.open(VERSION);
   await cache.addAll(SHELL);
   const html = await (await cache.match("/")).text();
   const builtAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.(?:js|css))"/g)].map(match => match[1]);
-  await cache.addAll(builtAssets);
+  const manifest = await (await cache.match("/asset-manifest.json")).json();
+  const manifestAssets = Object.values(manifest).flatMap(entry => [entry.file, ...(entry.css ?? []), ...(entry.assets ?? [])])
+    .filter(asset => typeof asset === "string")
+    .map(asset => `/${asset}`);
+  await cache.addAll([...new Set([...builtAssets, ...manifestAssets])]);
   await self.skipWaiting();
 })()));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== VERSION).map(key => caches.delete(key)))).then(() => self.clients.claim())));
