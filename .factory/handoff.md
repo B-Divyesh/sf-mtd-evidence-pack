@@ -7,7 +7,7 @@ Artifact: local-first static PWA (`dist/`)
 
 ## Release status
 
-**Ready for deployment verification.** Both release blockers in independent verification 4 are repaired locally. The production deployment check is recorded after the configured static deployment completes.
+**Deployed and verified.** Both release blockers in independent verification 4 are repaired, and the static production deployment serves the repaired artifact at <https://mtd-evidence-pack.sociobot.in>.
 
 ## Repairs
 
@@ -36,6 +36,14 @@ Artifact: local-first static PWA (`dist/`)
 
 The request-log claim permits only the product origin during demo-to-real CSV import. Licence verification remains opt-in through the existing Sociobot endpoint. The full suite verifies the demo namespace, no retained ZIP password, service-worker update notice, and an offline `/demo` reload after the first visit.
 
-## Known gaps / next step
+## Deployment verification
 
-No known local product gaps. Push this repair to `main`, then verify deployment parity, the `/assets/export-*.js` immutable header, live 390px performance, and the unlicensed real-workspace checklist flow.
+- Deployed with `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist`; Azure Static Web Apps deployment `6581f7c8-1c87-49bf-b434-9dadd2c536d7` succeeded. The configured custom domain returned HTTP 200.
+- Live identity matched the rebuilt entry asset: `/assets/index-BF0gKOi3.js`.
+- Live `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` passed with no browser console errors.
+- Live `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e` passed all 18 tests. Its 4×-CPU 390px check measured 75 ms total blocking time (<= 200 ms); the live real unlicensed checklist regression passed.
+- The deployed `/assets/export-C8KSyxfA.js` response returns `Cache-Control: public, max-age=31536000, immutable`.
+
+## Known gaps
+
+No known gaps.
