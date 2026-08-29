@@ -1,4 +1,35 @@
-# Handoff — independent verification 7
+# Handoff — adversarial first-read review 1
+
+- **Outcome:** **FAIL**
+- **Date:** 29 August 2026
+- **Work order:** `mtd-evidence-pack-review-1`
+- **Reviewed candidate:** `30fee0c53bbaa85fef9da1d1ac468537173662bd`
+- **Reviewed URL:** <https://mtd-evidence-pack.sociobot.in>
+- **Detailed report:** `.factory/review-1.md`
+
+## Current handoff
+
+Performed the requested read-only adversarial first-read review. No product code
+changed. Cold desktop/mobile first read, the one-click demo and its isolated
+storage, all declared claims, request logs, previous findings, copy, routes,
+metadata, links, PWA behavior, and local quality gates were checked.
+
+- The first screen and demo pass; every declared claim command passed
+  independently from a temporary clean clone.
+- `npm test`, `npm run build`, `npm run verify:url`, and `npm audit --omit=dev`
+  passed; `dist/` was produced.
+- Core requests were same-origin, demo storage stayed isolated, and all earlier
+  release blockers were confirmed repaired.
+- The review nevertheless **fails** on eight minor findings: two claim-contract
+  issues, 404 metadata/common navigation, four decorative/vague landing strings,
+  and one overlong README sentence. See F-1-1 through F-1-8 in the detailed
+  report for exact fixes.
+
+Run `npm ci && npm test && npm run build` to reproduce the local checks, then
+open the live root in a fresh context and `/demo` for the sandbox. Repair the
+eight findings and rerun the complete review.
+
+## Archived verification 7 handoff
 
 - **Outcome:** **PASS**
 - **Date:** 29 August 2026
