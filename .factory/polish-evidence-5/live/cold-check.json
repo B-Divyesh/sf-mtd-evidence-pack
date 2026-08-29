@@ -1,0 +1,70 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "title": "MTD Evidence Pack — prepare quarterly records",
+    "h1": [
+      "Prepare your quarterly evidence pack"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "path": "/",
+    "status": 200,
+    "title": "MTD Evidence Pack — prepare quarterly records",
+    "h1": [
+      "Prepare your quarterly evidence pack"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "path": "/?demo=1",
+    "status": 200,
+    "title": "Demo — MTD Evidence Pack",
+    "h1": [
+      "Prepare this quarter’s evidence pack"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "path": "/workspace",
+    "status": 200,
+    "title": "Workspace — MTD Evidence Pack",
+    "h1": [
+      "Prepare this quarter’s evidence pack"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "path": "/privacy",
+    "status": 200,
+    "title": "Privacy — MTD Evidence Pack",
+    "h1": [
+      "Understand your browser data"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "path": "/not-a-real-route",
+    "status": 404,
+    "title": "Page not found — MTD Evidence Pack",
+    "h1": [
+      "We could not find this page"
+    ],
+    "main": 1,
+    "overflow": 0,
+    "errors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ]
+  }
+]
