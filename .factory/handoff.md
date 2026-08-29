@@ -1,64 +1,52 @@
-+# MTD Evidence Pack — polish round 4 handoff
+# MTD Evidence Pack — review round 5 handoff
 
 - **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-polish-4`
-- **Base:** `f659d21cb61e0b41fcc144765e967ed2422676fc`
-- **Repair commit:** `232ff179153a6b44cb93ba12553365d3eb0fbe9b`
-- **Deployment:** `ce39b6d1-e075-4edc-baa6-fe394f7dd101`
+- **Work order:** `mtd-evidence-pack-review-5`
+- **Reviewed commit:** `de239265c9b3f1f179026b81b327a3bf3e2128ce`
 - **Live URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Result:** PASS — every finding in reviews 1–4 is fixed and retested.
+- **Result:** FAIL — three minor findings remain; no blocking finding was observed.
 
-## What changed
+## What was done
 
-Demo mode is now selected before any licence code runs. Both `/?demo=1` and `/demo` ignore licence query values and do not touch the real licence or IndexedDB namespaces. **Start for real** is the first point that loads real workspace and licence state.
+Completed the adversarial cold first-read review at 390 × 844 and 1440 × 900,
+the full landing/README copy audit, one-click demo and storage-isolation checks,
+all declared claim commands, route and link crawling, metadata and security
+header checks, keyboard/mobile/accessibility checks, visual-identity review,
+and a source-plus-live retest of every finding from reviews 1–4.
 
-History entries now retain their own scroll coordinates. Back and Forward restore exact positions after rendering, keep the new h1 focused without moving the page, and announce the route.
-
-The first-screen offline fact now names offline use. User copy explains file-change checks, Privacy controls, and browser installation in plain words. The static and in-app 404s use direct error language. The static 404 also shares the paper-moon wordmark, live network status, local favicon, apple-touch icon, manifest, legal links, metadata, and footer.
-
-Release references are `v1.0.11`. The catalog description is verb-first and 106 characters excluding its newline. The paper-moon ledger visual system, original artwork, static PWA class, and local-first product scope are unchanged.
+No product code was changed. The review is in `.factory/review-5.md`.
 
 ## How it was verified
 
-From clean clone `/tmp/mtd-polish4-clean.ZrakjB` at `232ff17`:
+From clean clone `/tmp/mtd-review5.r31qhn` at the reviewed commit:
 
 - `npm ci` — PASS, zero vulnerabilities.
-- All 16 exact commands in `.factory/claims.json`, run separately — PASS.
+- All 16 exact commands in `.factory/claims.json`, run independently — PASS.
 - `npm test` — PASS, 9 unit tests and 38 browser tests.
 - `npm run build` — PASS; `dist/index.html` produced.
 - `npm run lint` — PASS.
 - `npm audit --omit=dev` — PASS.
-- Repository and worker URL verifiers — PASS.
 
-Before deployment, the configured `npm ci && npm test && npm run build` command passed again. The production suite then passed all 38 browser tests against the live URL. Playwright Axe reported no serious or critical issues on landing, demo, workspace, Privacy, Terms, and 404. Mobile, keyboard, focus, 200% text, reduced-motion, privacy, offline, PWA cache, and encrypted export checks passed.
+Against production:
 
-Performance evidence:
-
-- Browser budget test: 588 ms live mobile LCP, 32 ms longest interaction, 2,269 B initial JavaScript transfer, 5,421 B CSS transfer.
-- Build: 2.01 kB gzip initial JavaScript; 4.96 kB gzip CSS.
-- Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 0.9 s, CLS 0, TBT 60 ms.
-- Reports and reviewed screenshots: `.factory/polish-evidence-4/`.
-
-Routing evidence:
-
-- `/`, `/demo`, `/workspace`, `/privacy`, and `/terms` returned 200.
-- The unknown-route check returned the designed page with HTTP 404.
-- Robots, sitemap, manifest, favicon, and apple-touch icon returned 200.
-- Back restored landing `scrollY=813`; Forward restored demo `scrollY=1024`; each route h1 held focus.
-- The URL verifier found no console errors, missing title/language/main/image alternative, or unnamed button.
+- `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e`
+  — PASS, 38 browser tests.
+- `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` — PASS.
+- Fresh mobile and desktop first reads, one-click demo/reset, request logging,
+  storage inspection, full route metadata checks, response-header checks, and
+  an all-route link crawl — PASS.
+- Unfiltered Axe audit — one moderate violation on `/workspace`, recorded as
+  F-5-1.
+- Clean local and live `asset-manifest.json` files are identical.
 
 ## Known gaps and next steps
 
-None. No finding or deferred task remains.
+- `F-5-1`: replace the nested workspace `aside` landmark and make the Axe gate
+  reject moderate violations.
+- `F-5-2`: correct and enforce the Node.js support range, then declare and test
+  that compatibility statement.
+- `F-5-3`: rename the final README heading to “Source code licence.”
 
-## Independent verifier update — 29 August 2026
-
-**Candidate:** `0bf1aa717291853801883ef65ac9b7a01527c295`
-**Live URL:** <https://mtd-evidence-pack.sociobot.in>
-**Result:** **PASS**
-
-Fresh independent QA confirms the live deployment is byte-identical to this candidate’s production build. All 16 declared claims passed individually from a clean install and `/demo`; `npm test` (9 unit + 38 browser tests), `npm run lint`, `npm run build`, the full 38-test live-browser suite, and the URL verifier pass. PWA update/offline reload, privacy requests and headers, 390 px mobile, keyboard/focus, reduced motion, serious/critical axe, and verifier API rate limiting were checked.
-
-Observed licence-verification allowance: 30 requests per client window; requests 31–35 returned 429 with `Retry-After: 4`. The sole open item is a non-blocking P2 moderate axe landmark-nesting advisory on `/workspace` (`landmark-complementary-is-top-level`).
-
-Exact evidence: `.factory/verification-12.md`.
+After those repairs, rerun all 16 claim commands, the full local and live
+browser suites, the unfiltered Axe audit, and review round 6 from fresh browser
+contexts.
