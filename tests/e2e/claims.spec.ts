@@ -309,11 +309,15 @@ test("all product routes have no serious accessibility violations", async ({ pag
 });
 
 test("routes load without browser errors", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
-  page.on("pageerror", error => errors.push(error.message));
-  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms", "/missing-page"]) await page.goto(path);
-  expect(errors).toEqual([]);
+  const errors: Array<{ text: string; url: string }> = [];
+  page.on("console", message => { if (message.type() === "error") errors.push({ text: message.text(), url: message.location().url }); });
+  page.on("pageerror", error => errors.push({ text: error.message, url: "pageerror" }));
+  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) await page.goto(path);
+  const missingResponse = await page.goto("/missing-page");
+  await expect(page.getByRole("heading", { level: 1, name: "This page is not in the pack" })).toBeVisible();
+  if (process.env.PLAYWRIGHT_BASE_URL) expect(missingResponse?.status()).toBe(404);
+  const unexpectedErrors = errors.filter(error => !(error.url.endsWith("/missing-page") && error.text.includes("server responded with a status of 404")));
+  expect(unexpectedErrors).toEqual([]);
 });
 
 test("@keyboard Space toggles a demo checklist item", async ({ page }) => {

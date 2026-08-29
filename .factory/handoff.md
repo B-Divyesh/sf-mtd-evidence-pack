@@ -8,8 +8,9 @@
 
 ## Status
 
-The repository repair is buildable and all local product gates pass. Deployment
-and live retest are the remaining steps for this work order.
+Production was deployed from repair commit `a28cc3a` at 29 August 2026. The
+repository repair is buildable, its local and live product gates pass, and all
+26 publicly served build files match local `dist/` by SHA-256.
 
 One external release dependency remains: at 11:11 UTC on 29 August the
 factory-owned `https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout`
@@ -74,16 +75,23 @@ launcher could not locate Chrome. The repository's Playwright
 `@axe-core/playwright` scans are the recorded accessibility gate and passed on
 every product route.
 
-## Deployment and retest
+## Deployment and live evidence
 
-Run the static deployment from this work order after committing this repair:
-
-```sh
-npm ci && npm test && npm run build
-/opt/fleet/lib/deploy-static.sh mtd-evidence-pack dist
-```
-
-Then verify the live URL, static response headers, real 404 status, offline
-export, candidate/live file hashes, and the checkout redirect. The live
-checkout is expected to remain blocked until the factory enables the product
-record described above.
+- Deployment: `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack dist`;
+  Azure Static Web Apps deployment ID `67bf66dd-9c71-41c7-9084-8beea48c9805`.
+- `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` — passed with
+  title, `en-GB`, one h1, main landmark, alt text, labelled buttons, and no
+  browser errors.
+- Live full Playwright suite — passed: 23/23. Its throttled landing run measured
+  67 ms TBT. This includes desktop and 390 px mobile, keyboard, route focus,
+  200% text reflow, Playwright Axe, privacy request assertions, service-worker
+  update feedback, offline encrypted export, and the live not-found route.
+- Live response policy includes HSTS, `nosniff`, strict-origin referrer policy,
+  restrictive permissions policy, CSP with only the Sociobot licence API as an
+  external `connect-src`, and `frame-ancestors 'none'` as a response header.
+- `https://mtd-evidence-pack.sociobot.in/missing-page` returns HTTP 404 and the
+  designed page text. SHA-256 parity passed for all 26 publicly served files.
+- The live checkout endpoint was retested after deployment and still returns
+  `404 {"error":"enabled factory product","status":404}`. The factory must
+  enable the `mtd-evidence-pack` product record before this release can be
+  accepted as purchasable.
