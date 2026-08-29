@@ -238,6 +238,19 @@ test("@claim:checkout-unavailable new licences are not offered while existing li
   expect(readme).toContain("New licences are not currently available.");
 });
 
+test("landing uses the reviewed plain-language wording", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Try it with sample data" })).toHaveAttribute("href", "/?demo=1");
+  await expect(page.getByText("Keep source files with the records for one selected quarter.")).toBeVisible();
+  await expect(page.getByText("Readiness preview", { exact: true })).toBeVisible();
+  await expect(page.getByText("What this tool does not do", { exact: true })).toBeVisible();
+  await expect(page.getByText("It does not submit tax returns.", { exact: false })).toBeVisible();
+  await expect(page.getByText("New licences are not currently available.", { exact: false })).toBeVisible();
+  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable"]) {
+    await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
+  }
+});
+
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
   await page.goto("/demo");
   await expect(page.getByRole("heading", { level: 3, name: "1 open item" })).toBeVisible();
@@ -346,6 +359,21 @@ test("static-host routing keeps product paths and returns the designed 404 page 
   expect(missing).toContain('href="/workspace"');
   expect(missing).toContain('href="/privacy"');
   expect(missing).toContain('href="/terms"');
+});
+
+test("app routes update title, description, and canonical metadata", async ({ page }) => {
+  const routes = [
+    ["/?demo=1", "Demo — MTD Evidence Pack", "Try one sample bookkeeping quarter. Sample changes are not saved.", "https://mtd-evidence-pack.sociobot.in/demo"],
+    ["/workspace", "Workspace — MTD Evidence Pack", "Prepare a local quarterly evidence pack from bookkeeping records and source files.", "https://mtd-evidence-pack.sociobot.in/workspace"],
+    ["/privacy", "Privacy — MTD Evidence Pack", "Learn how MTD Evidence Pack stores local browser data and licence details.", "https://mtd-evidence-pack.sociobot.in/privacy"],
+    ["/terms", "Terms — MTD Evidence Pack", "Read the terms for using MTD Evidence Pack to organise local records.", "https://mtd-evidence-pack.sociobot.in/terms"]
+  ];
+  for (const [path, title, description, canonical] of routes) {
+    await page.goto(path);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", description);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonical);
+  }
 });
 
 test("all product routes have no serious accessibility violations", async ({ page }) => {
