@@ -3,8 +3,8 @@
 - **Outcome:** PASS — all findings from review rounds 1 and 2 are fixed.
 - **Date:** 29 August 2026
 - **Work order:** `mtd-evidence-pack-polish-2`
-- **Repair commit:** `c82cdc26e9dd3137c2e72c3505c2335ae8d668c2`
-- **Deployment:** `a9c776ef-7df2-44fc-b0ac-fea4eb772e89`
+- **Repair commits:** `c82cdc26e9dd3137c2e72c3505c2335ae8d668c2`, `15283d5`
+- **Deployment:** `9c313691-1d89-4c1b-9c44-2046f38043ee`
 - **Live URL:** <https://mtd-evidence-pack.sociobot.in>
 - **Finding map:** `.factory/polish-2.md`
 
@@ -50,8 +50,8 @@ npm run verify:url -- https://mtd-evidence-pack.sociobot.in
 - Playwright Axe found zero serious or critical violations across all routes and the 404.
 - Keyboard Space, skip link, route focus, 44 px targets, 390 px layout, and 200% text reflow passed.
 - Offline reload and encrypted ZIP export passed from the cached demo.
-- Live performance test: LCP 568 ms, longest interaction 32 ms, initial JS 2,120 B, CSS 5,380 B.
-- Live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.0 s, CLS 0, TBT 0 ms.
+- Final live performance test: LCP 616 ms, longest interaction 32 ms, initial JS 2,120 B, CSS 5,380 B.
+- Live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.0 s, CLS 0, TBT 80 ms.
 
 Evidence is in `.factory/polish-evidence-2/`, including live landing, demo, 404 screenshots and Lighthouse JSON.
 

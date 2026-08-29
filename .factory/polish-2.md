@@ -2,7 +2,7 @@
 
 **Work order:** `mtd-evidence-pack-polish-2`  
 **Base review:** `7e537d710193e2630ee88a12d36067f8a4938ed7`  
-**Product repair:** `c82cdc26e9dd3137c2e72c3505c2335ae8d668c2`  
+**Product repair:** `c82cdc26e9dd3137c2e72c3505c2335ae8d668c2`, metadata/evidence follow-up `15283d5`
 **Live URL:** <https://mtd-evidence-pack.sociobot.in>
 
 Every finding in `.factory/review-1.md` and `.factory/review-2.md` was retested. Round 1 remains fixed, and all round 2 findings are fixed.
@@ -31,7 +31,7 @@ Every finding in `.factory/review-1.md` and `.factory/review-2.md` was retested.
 - Live cold route checks returned 200 for `/`, `/demo`, `/workspace`, `/privacy`, and `/terms`; the designed unknown route returned 404. Every route had one h1, one main, its title, description, canonical and social metadata. All crawled links returned 200.
 - Playwright Axe found no serious or critical issue on every route and the 404. Keyboard, focus transfer, 390 px layout, touch targets, and 200% text reflow checks passed.
 - The privacy test recorded only `https://mtd-evidence-pack.sociobot.in` during the demo-to-real flow. The offline test cold-reloaded the cached demo and exported its encrypted pack.
-- Live performance test: 568 ms LCP, 32 ms longest interaction, 2,120 B initial JavaScript, and 5,380 B CSS. Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.0 s, CLS 0, TBT 0 ms. Report: `polish-evidence-2/lighthouse-live.json`.
-- Deployment `a9c776ef-7df2-44fc-b0ac-fea4eb772e89` completed through `/opt/fleet/lib/deploy-static.sh` and the custom HTTPS URL returned 200.
+- Final live performance test: 616 ms LCP, 32 ms longest interaction, 2,120 B initial JavaScript, and 5,380 B CSS. Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.0 s, CLS 0, TBT 80 ms. Report: `polish-evidence-2/lighthouse-live.json`.
+- Final deployment `9c313691-1d89-4c1b-9c44-2046f38043ee` completed through `/opt/fleet/lib/deploy-static.sh` and the custom HTTPS URL returned 200.
 
 No finding or known product gap remains.
