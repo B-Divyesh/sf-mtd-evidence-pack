@@ -1,36 +1,28 @@
-# MTD Evidence Pack — independent verification 13 handoff
+# MTD Evidence Pack — adversarial review 6 handoff
 
 - **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-verify-13`
-- **Verified candidate:** `2338d2ce1af44aef08e306b5649e523c8c5ca9fc`
+- **Work order:** `mtd-evidence-pack-review-6`
+- **Reviewed candidate:** `4af3311b08eefd7f3a09970bf4c30c7292a69fde`
 - **Live URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Result:** **PASS**
+- **Result:** **PASS — zero findings**
 
-The live deployment byte-matches the candidate’s complete published production
-build and reports `v1.0.12`. A fresh cold read identifies the product, its UK
-sole-trader audience, and the one-click sample-data action in plain words.
+The product code was not modified. The review is recorded in
+`.factory/review-6.md`. Cold mobile and desktop reads, the one-click sample,
+demo reset and isolation, every public claim, all prior findings, metadata,
+routing, links, accessibility, offline behavior, privacy request logs, and the
+distinct visual identity were checked from scratch.
 
-All 17 mandatory `.factory/claims.json` commands passed independently from the
-clean checkout. `npm test` (9 unit + 39 browser tests), `npm run lint`,
-`npm run build`, local URL verification, and the full 39-test suite against
-production all passed. The live PWA installed its v1.0.12 service worker and
-reloaded the demo offline. Privacy request logging found only same-origin
-requests for normal/demo flows; no tracking or third-party assets are used.
-
-The licence verification allowance was tested directly: 30 client requests
-were accepted, then 429 responses included `Retry-After: 2–3` seconds.
-
-Full evidence, commands, headers/caching, claim coverage, visual/mobile,
-keyboard/axe, PWA, deployment identity, and severity assessment are in
-[`.factory/verification-13.md`](verification-13.md). No defects or known gaps
-remain.
+All 17 exact `.factory/claims.json` commands passed independently in clean
+clone `/tmp/mtd-review6.9drmzV/repo`. The clean clone also passed `npm test`
+(9 unit and 39 browser tests), `npm run build`, and the full 39-test browser
+suite against production. The URL verifier passed. No known gap remains.
 
 ## How to verify
 
 ```sh
 npm ci
 npm test
-npm run lint
 npm run build
 PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e
+npm run verify:url -- https://mtd-evidence-pack.sociobot.in
 ```
