@@ -70,7 +70,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer class="site-footer"><p>Prepare a quarterly evidence pack on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.8</p></footer>`;
+  return `<footer class="site-footer"><p>Prepare a quarterly evidence pack on your device.<span class="art-credit">Hero artwork was generated for this product.</span></p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.9</p></footer>`;
 }
 
 function shell(content: string, banner = ""): string {
@@ -235,6 +235,16 @@ app.addEventListener("change", async event => {
     if (workspace.periodStart > workspace.periodEnd) { statusMessage = ""; errorMessage = "The start date is after the end date. Change one of the dates."; } else { errorMessage = ""; await persist(); }
     render();
   }
+});
+
+app.addEventListener("focusin", event => {
+  const input = event.target as HTMLInputElement;
+  if (!input.matches("[data-import-csv], [data-import-docs]")) return;
+  input.closest<HTMLElement>(".file-button")?.scrollIntoView({
+    block: "center",
+    inline: "nearest",
+    behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+  });
 });
 
 app.addEventListener("input", event => {

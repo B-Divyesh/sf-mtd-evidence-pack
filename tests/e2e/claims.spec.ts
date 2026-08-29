@@ -1,7 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
+
+async function tabTo(page: Page, target: Locator): Promise<void> {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate(element => document.activeElement === element)) return;
+  }
+  throw new Error("Keyboard focus did not reach the expected control.");
+}
 
 test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   await page.goto("/?demo=1");
@@ -168,9 +176,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.8");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.9");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.8");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.9");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -192,8 +200,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toHaveText("v1.0.8");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.8");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.9");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.9");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -253,7 +261,7 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Prepare your quarterly evidence pack" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "See what is missing before export" })).toBeVisible();
   await expect(page.getByText("Free core and existing licences", { exact: true })).toBeVisible();
-  await expect(page.locator(".build-id")).toHaveText("v1.0.8");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.9");
   for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff"]) {
     await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
   }
@@ -284,7 +292,7 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.8");
+  expect(manifest.start_url).toBe("/?v=1.0.9");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -431,6 +439,42 @@ test("@keyboard Space toggles a demo checklist item", async ({ page }) => {
   await expect(check).not.toBeChecked();
 });
 
+test("@keyboard @mobile file imports show a focus ring and scroll the visible control into view", async ({ page }) => {
+  await page.goto("/demo");
+  for (const selector of ["[data-import-csv]", "[data-import-docs]"]) {
+    const input = page.locator(selector);
+    await tabTo(page, input);
+    await expect.poll(() => input.evaluate(element => {
+      const bounds = element.closest<HTMLElement>(".file-button")!.getBoundingClientRect();
+      return bounds.top >= 0 && bounds.bottom <= window.innerHeight;
+    })).toBe(true);
+    const state = await input.evaluate(element => {
+      const label = element.closest<HTMLElement>(".file-button")!;
+      const labelBounds = label.getBoundingClientRect();
+      const inputBounds = element.getBoundingClientRect();
+      const labelStyle = getComputedStyle(label);
+      return {
+        focused: document.activeElement === element,
+        labelTop: labelBounds.top,
+        labelBottom: labelBounds.bottom,
+        labelWidth: labelBounds.width,
+        inputWidth: inputBounds.width,
+        outlineStyle: labelStyle.outlineStyle,
+        outlineWidth: Number.parseFloat(labelStyle.outlineWidth),
+        outlineColor: labelStyle.outlineColor,
+        viewportHeight: window.innerHeight
+      };
+    });
+    expect(state.focused).toBe(true);
+    expect(state.outlineStyle).toBe("solid");
+    expect(state.outlineWidth).toBeGreaterThanOrEqual(3);
+    expect(state.outlineColor).toBe("rgb(141, 51, 46)");
+    expect(state.inputWidth).toBeGreaterThanOrEqual(state.labelWidth - 6);
+    expect(state.labelTop).toBeGreaterThanOrEqual(0);
+    expect(state.labelBottom).toBeLessThanOrEqual(state.viewportHeight);
+  }
+});
+
 test("@keyboard cold load starts at the skip link and client navigation focuses the heading", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("h1")).not.toBeFocused();
@@ -460,6 +504,28 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   await page.goto("/privacy");
   const emailBox = await page.getByRole("link", { name: "privacy@sociobot.in" }).boundingBox();
   expect(emailBox?.height).toBeGreaterThanOrEqual(44);
+});
+
+test("@mobile demo banner remains visible while working lower in the sample", async ({ page }) => {
+  await page.goto("/demo");
+  await page.locator(".export-section").scrollIntoViewIfNeeded();
+  const state = await page.locator(".demo-banner").evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    return { position: getComputedStyle(element).position, top: bounds.top, bottom: bounds.bottom, viewportHeight: window.innerHeight };
+  });
+  expect(state.position).toBe("sticky");
+  expect(state.top).toBeGreaterThanOrEqual(0);
+  expect(state.top).toBeLessThanOrEqual(1);
+  expect(state.bottom).toBeLessThanOrEqual(state.viewportHeight);
+  await expect(page.getByRole("button", { name: "Reset demo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start for real" })).toBeVisible();
+});
+
+test("public footers disclose that the hero artwork was generated", async ({ page }) => {
+  for (const path of ["/", "/missing-page"]) {
+    await page.goto(path);
+    await expect(page.locator(".art-credit")).toHaveText("Hero artwork was generated for this product.");
+  }
 });
 
 test("@mobile 200% text reflows without horizontal overflow and keeps the home target usable", async ({ page }) => {

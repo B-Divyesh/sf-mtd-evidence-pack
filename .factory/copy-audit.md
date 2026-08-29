@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited 29 August 2026 for release 1.0.8. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026 for release 1.0.9. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
 | Copy | Words | Result |
 |---|---:|---|
@@ -54,8 +54,9 @@ Audited 29 August 2026 for release 1.0.8. Counts treat hyphenated terms as one w
 | Paste your licence | 3 | Bound field label |
 | Verify licence | 2 | Result-naming action |
 | Prepare a quarterly evidence pack on your device. | 8 | Product footer summary |
+| Hero artwork was generated for this product. | 7 | Image provenance disclosure |
 | Built by Param Factory (external site) | 6 | Clear external link |
-| v1.0.8 | 1 | Build identifier |
+| v1.0.9 | 1 | Build identifier |
 
 ## First-screen read-aloud check
 
