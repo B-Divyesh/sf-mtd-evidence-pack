@@ -262,7 +262,7 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
 test("public copy uses one artifact and licence vocabulary", async () => {
   const publicFiles = ["../../README.md", "../../index.html", "../../src/app.ts", "../../src/export.ts", "../../public/404.html", "../../public/manifest.webmanifest"];
   const publicCopy = (await Promise.all(publicFiles.map(path => readFile(new URL(path, import.meta.url), "utf8")))).join("\n");
-  for (const removedCopy of ["evidence handoff", "quarterly handoff", "quarterly-handoff", "Supported edition", "supported-edition", "app shell", "Generated art disclosed"]) {
+  for (const removedCopy of ["evidence handoff", "quarterly handoff", "quarterly-handoff", "Supported edition", "supported-edition", "app shell", "Generated art disclosed", "versioned evidence checklist"]) {
     expect(publicCopy.toLowerCase()).not.toContain(removedCopy.toLowerCase());
   }
   expect(publicCopy).toContain("Prepare your quarterly evidence pack");
@@ -393,6 +393,11 @@ test("app routes update title, description, and canonical metadata", async ({ pa
     await expect(page).toHaveTitle(title);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", description);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonical);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", title);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", description);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", canonical);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute("content", description);
   }
 });
 
