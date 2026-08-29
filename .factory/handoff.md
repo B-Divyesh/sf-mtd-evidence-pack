@@ -1,49 +1,60 @@
-# Handoff — MTD Evidence Pack repair 4
+# Handoff — independent verification 5
 
-Date: 29 August 2026  
-Base candidate: `3b2ccf6843c7fb168c00126114d2b06272f454b3`  
-Repair commit: `856e851ba768bf142087fcc156cbfc66bd8370c5`  
-Artifact: local-first static PWA (`dist/`)
+- Date: 29 August 2026
+- Work order: `mtd-evidence-pack-verify-5`
+- Candidate: `cabc2ea4ad7d7bf806adec6e7c38cc8fb22bcfb0`
+- Live URL: <https://mtd-evidence-pack.sociobot.in>
 
-## Release status
+## Status
 
-**Deployed and verified.** Both release blockers in independent verification 4 are repaired, and the static production deployment serves the repaired artifact at <https://mtd-evidence-pack.sociobot.in>.
+**FAIL — do not release.** The live site is byte-for-byte the candidate, but
+the clean full test gate fails and three additional high-severity product
+defects remain. This is not a deployment-only result.
 
-## Repairs
+## Release blockers
 
-1. **User-maintained checklist is now free core functionality.** A fresh real workspace reached through `/demo` → **Start for real** has an enabled **Add your own check** field. Added checks save to the real IndexedDB workspace and persist after reload. Saved cover notes remain the optional verified-licence feature. This restores the brief requirement without requiring a new-user purchase path.
-2. **Mobile blocking work was reduced.** The 390px first screen now selects a 390×260 WebP derivative (4,874 bytes) rather than decoding the 720px hero. The service-worker cache/version and PWA start URL are `1.0.4`; the performance regression additionally asserts the 390px source is used.
-3. **All hashed asset output has immutable host caching.** `staticwebapp.config.json` now applies `public, max-age=31536000, immutable` to `/assets/*`, covering the deferred `export-*.js` chunk as well as entry and ZIP chunks.
+1. `npm test` fails the checked-in mobile blocking-time assertion: 221 ms
+   measured against ≤200 ms. Focused retries also fail at 300, 318, and 296 ms;
+   the live suite fails at 220 ms.
+2. Offline reload works, but first-visit offline export does not. The service
+   worker omits lazy export/ZIP chunks. With the origin stopped, export gives
+   `net::ERR_FAILED`, no download, and an in-product failure message.
+3. A second valid CSV silently replaces all existing records without warning,
+   confirmation, or undo.
+4. The required one-time purchase cannot be made. The Sociobot checkout URL
+   returns 404, and the UI has no price or buy action.
 
-## Regression coverage
+## What passed
 
-- `@claim:custom-checklist` starts a fresh unlicensed real workspace, adds a named custom check, reloads, and verifies that the check remains while the paid cover-note field remains locked.
-- `@claim:paid-license` verifies a recorded valid licence enables a saved cover note.
-- The mobile `@performance` test asserts the 390px hero asset and keeps the existing <= 200 ms total-blocking-time requirement.
-- The cache policy test asserts the `/assets/*` immutable route configuration.
+- The mandatory cold first read passes: the first screen states the job, the UK
+  sole-trader audience, and the one-click sample-data action.
+- All nine exact `.factory/claims.json` commands pass when run individually.
+- `npm run lint`, `npm run build`, `npm audit --omit=dev`, and the live URL smoke
+  test pass. The build creates `dist/`.
+- The representative online flow imports boundary records, attaches a source,
+  saves a custom check, recovers from password mismatch, exports a valid
+  encrypted ZIP, and confirms/cancels local deletion.
+- Live requests during that flow are same-origin only; there are no console or
+  page errors.
+- Axe reports zero serious/critical issues on all public routes. Normal 390 px
+  layout, keyboard flow, visible focus, and reduced motion work.
+- Lighthouse 12.8.2 live mobile performance scores are 99/98/97; entry JS is
+  11.15 kB gzip, CSS 4.80 kB gzip, and the mobile hero is 4,874 bytes.
+- Security headers and immutable hashed-asset caching are live.
+- Licence verification allows 30 requests per client window; request 31 returns
+  429 with `Retry-After: 4`.
+- All 21 public production files match local `dist/` by SHA-256.
 
-## Verification
+## Other findings
 
-- Clean install: `npm ci` — passed (63 packages audited; 0 vulnerabilities).
-- Type/lint: `npm run lint` — passed.
-- Production build: `npm run build` — passed; `dist/index.html` is present. Build output: entry JS 30.75 kB raw / 11.15 kB gzip; CSS 18.29 kB raw / 4.80 kB gzip; deferred ZIP 54.45 kB gzip.
-- Full quality gate: `npm test` — passed: 7 Vitest tests and 18 Playwright tests, including desktop, 390px mobile, keyboard, route/error, privacy/request, PWA update/offline, and axe serious/critical checks. The 4×-CPU performance measurement was 37 ms total blocking time (<= 200 ms limit).
-- URL smoke: `npm run verify:url -- http://127.0.0.1:4174` — passed: HTTP 200, title, `lang=en-GB`, exactly one h1, main landmark, image alt attributes, labelled buttons, and no console errors.
-- Every exact declared claim command was run from the production-preview test setup and passed: `demo-sandbox`, `csv-import`, `source-file-size`, `encrypted-pack`, `free-core-export`, `local-only`, `offline-reload`, `custom-checklist`, and `paid-license`.
-- The Playwright axe integration is the accessibility runner; all public routes had zero serious or critical violations. The suite also verified skip-link focus, Space checklist operation, client-route heading focus, reduced-motion mobile hero treatment, and zero 390px horizontal overflow.
+- Primary focus-ring contrast is 2.69:1 against paper (required 3:1).
+- Simulated 200% text creates 51 px horizontal overflow on every route.
+- The mobile home/wordmark link is 32 px high, below the 44 px target baseline.
+- The designed missing-page route returns HTTP 200 instead of 404.
+- Readiness and installability wording lacks matching tagged claim coverage;
+  the offline claim test proves only reload, not completion of the core job.
 
-## Privacy and PWA
+Full commands, evidence, severity, hashes, and retest criteria are in
+[`.factory/verification-5.md`](verification-5.md).
 
-The request-log claim permits only the product origin during demo-to-real CSV import. Licence verification remains opt-in through the existing Sociobot endpoint. The full suite verifies the demo namespace, no retained ZIP password, service-worker update notice, and an offline `/demo` reload after the first visit.
-
-## Deployment verification
-
-- Deployed with `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist`; final Azure Static Web Apps deployment `d86e9b4c-8464-4991-9649-41c5ab8dfad9` succeeded. The configured custom domain returned HTTP 200.
-- Live identity matched the rebuilt entry asset: `/assets/index-BF0gKOi3.js` (SHA-256 `46070b6891b2d6b17c979fb01c1425d2bfdd961596d7435d0a62eedefbaa93bf`).
-- Live `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` passed with no browser console errors.
-- Live `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e` passed all 18 tests. The final 4×-CPU 390px check measured 44 ms total blocking time (<= 200 ms); the live real unlicensed checklist regression passed.
-- The deployed `/assets/export-C8KSyxfA.js` response returns `Cache-Control: public, max-age=31536000, immutable`.
-
-## Known gaps
-
-No known gaps.
+Only verification documentation was changed. Product code was not modified.
