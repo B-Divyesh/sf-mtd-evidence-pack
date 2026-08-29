@@ -8,7 +8,7 @@ Use compatible filing software or an accountant when you are ready to submit.
 
 ## Try the sample
 
-Open `/?demo=1` locally or visit <https://mtd-evidence-pack.sociobot.in/?demo=1>. The sample contains one realistic quarter. Demo changes are kept in memory and disappear on reload. `/demo` also opens the sample.
+Open `/?demo=1` locally or visit <https://mtd-evidence-pack.sociobot.in/?demo=1>. The sample contains 12 categorised records, three source files, and one open checklist item for one quarter. Demo changes are kept in memory and disappear on reload. `/demo` also opens the sample.
 
 ## What the export contains
 
@@ -24,13 +24,13 @@ Send the ZIP password through a different channel. The password is never saved.
 
 ## Privacy and offline use
 
-See the in-product [Privacy](/privacy) page for browser-data controls and licence checks.
+See the in-product [Privacy](https://mtd-evidence-pack.sociobot.in/privacy) page for browser-data controls and licence checks.
 
 The app, sample, and encrypted export work after the first visit. Install it from a supporting browser for a standalone window.
 
-## Free core and existing licences
+## Free export and existing licences
 
-The core import, checklist maintenance, attachments, and encrypted export are free. Existing licence holders can paste a token to restore saved cover notes. New licences are not currently available. Licence verification uses the Sociobot billing API.
+Import records, maintain the checklist, attach source files, and export an encrypted evidence pack without a licence. Existing licence holders can paste a token to restore saved cover notes. New licences are not currently available. Licence verification sends its token to the Sociobot billing API.
 
 ## Develop
 

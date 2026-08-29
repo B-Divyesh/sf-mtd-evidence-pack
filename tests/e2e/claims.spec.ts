@@ -29,6 +29,15 @@ test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   await expect(page.getByText("The sample resets when you reload or leave the demo.")).toHaveCount(0);
 });
 
+test("@claim:sample-content loads the documented records, files, and open checklist item", async ({ page }) => {
+  await page.goto("/demo");
+  await expect(page.locator("tbody tr")).toHaveCount(12);
+  await expect(page.locator(".document-list li")).toHaveCount(3);
+  await expect(page.getByRole("heading", { level: 3, name: "1 open item" })).toBeVisible();
+  await expect(page.locator(".gaps")).toContainText("Invoices and receipts can be matched to records");
+  await expect(page.locator(".table-summary")).toContainText("12 records");
+});
+
 test("@claim:csv-import rejects impossible dates and missing amounts, then safely adds valid CSV records", async ({ page }) => {
   await page.goto("/demo");
   await page.locator("[data-import-csv]").setInputFiles({
@@ -57,7 +66,9 @@ test("@claim:csv-import rejects impossible dates and missing amounts, then safel
 });
 
 test("@claim:period-integrity rejects an outside-period file atomically and clears stale success feedback", async ({ page }) => {
-  await page.goto("/workspace");
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
   const fileInput = page.locator("[data-import-csv]");
   await fileInput.setInputFiles({
     name: "boundary-records.csv", mimeType: "text/csv",
@@ -100,7 +111,7 @@ test("@claim:source-file-size accepts 10 MB and rejects 10 MB plus one byte", as
   await expect(page.getByText("ten-megabytes.pdf", { exact: true })).toBeVisible();
 });
 
-test("@claim:encrypted-pack @claim:free-core-export exports a password-protected ZIP with its listed files", async ({ page }) => {
+test("@claim:encrypted-pack exports a password-protected ZIP with its listed files", async ({ page }) => {
   const browserErrors: string[] = [];
   page.on("console", message => { if (message.type() === "error") browserErrors.push(message.text()); });
   page.on("pageerror", error => browserErrors.push(error.message));
@@ -144,6 +155,34 @@ test("@claim:encrypted-pack @claim:free-core-export exports a password-protected
   await reader.close();
 });
 
+test("@claim:free-evidence-pack runs the complete free workflow without a licence", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:mtd-evidence-pack"))).toBeNull();
+
+  await page.locator("[data-import-csv]").setInputFiles({
+    name: "free-workflow-record.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category\n2026-04-10,Free workflow record,400,Sales\n")
+  });
+  await expect(page.locator(".message.success")).toHaveText("1 record added. 1 total.");
+  await page.locator("#custom-check").fill("Confirm source files before sharing");
+  await page.getByRole("button", { name: "Add check" }).click();
+  await expect(page.getByText("Confirm source files before sharing", { exact: true })).toBeVisible();
+  await page.locator("[data-import-docs]").setInputFiles({
+    name: "free-workflow-source.txt", mimeType: "text/plain", buffer: Buffer.from("Source file for the free workflow.")
+  });
+  await expect(page.getByText("free-workflow-source.txt", { exact: true })).toBeVisible();
+
+  await page.locator("#pack-password").fill("free-pack-26");
+  await page.locator("#pack-password-confirm").fill("free-pack-26");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export encrypted ZIP" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("evidence-pack-2026-07-05.zip");
+  expect(await download.path()).not.toBeNull();
+});
+
 test("@claim:local-only records entered after the demo stay in IndexedDB and make no cross-origin request", async ({ page }) => {
   const origins = new Set<string>();
   page.on("request", request => origins.add(new URL(request.url()).origin));
@@ -176,9 +215,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.9");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.10");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.9");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.10");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -200,8 +239,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toHaveText("v1.0.9");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.9");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.10");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.10");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -222,8 +261,12 @@ test("@claim:custom-checklist an unlicensed real workspace saves a user-maintain
   await expect(page.locator("#cover-note")).toBeDisabled();
 });
 
-test("@claim:paid-license a verified licence enables saved cover notes", async ({ page }) => {
-  await page.route("https://api.sociobot.in/**", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) }));
+test("@claim:paid-license a verified licence enables saved cover notes through the Sociobot billing API", async ({ page }) => {
+  const verificationRequests: URL[] = [];
+  await page.route("https://api.sociobot.in/**", route => {
+    verificationRequests.push(new URL(route.request().url()));
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) });
+  });
   await page.goto("/demo");
   await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
   await page.getByRole("button", { name: "Start for real" }).click();
@@ -233,9 +276,14 @@ test("@claim:paid-license a verified licence enables saved cover notes", async (
   await expect.poll(() => page.evaluate(() => localStorage.getItem("sb_license:mtd-evidence-pack"))).toBe("sample-valid-token");
   await expect(page.locator("#custom-check")).toBeEnabled();
   await expect(page.locator("#cover-note")).toBeEnabled();
+  expect(verificationRequests).toHaveLength(1);
+  expect(verificationRequests[0].origin).toBe("https://api.sociobot.in");
+  expect(verificationRequests[0].pathname).toBe("/api/v1/products/mtd-evidence-pack/verify");
+  expect(verificationRequests[0].searchParams.get("license")).toBe("sample-valid-token");
 });
 
 test("@claim:checkout-unavailable new licences are not offered while existing licence restore remains available", async ({ page }) => {
+  await page.goto("/demo");
   for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) {
     await page.goto(path);
     await expect(page.locator('a[href*="/checkout"]'), path).toHaveCount(0);
@@ -250,6 +298,25 @@ test("@claim:checkout-unavailable new licences are not offered while existing li
   expect(readme).toContain("New licences are not currently available.");
 });
 
+test("@claim:no-tax-submission completes the demo and real workflows without a tax-submission control or HMRC request", async ({ page }) => {
+  const requestedUrls: string[] = [];
+  page.on("request", request => requestedUrls.push(request.url()));
+  await page.goto("/demo");
+  await page.locator("#pack-password").fill("sample-pack-26");
+  await page.locator("#pack-password-confirm").fill("sample-pack-26");
+  const demoDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export encrypted ZIP" }).click();
+  await expect((await demoDownload).path()).resolves.not.toBeNull();
+  await expect(page.getByRole("button", { name: /submit.*tax|tax.*submit/i })).toHaveCount(0);
+  await expect(page.locator('a[href*="hmrc" i], form[action*="hmrc" i], [data-tax-submission]')).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /submit.*tax|tax.*submit/i })).toHaveCount(0);
+  await expect(page.locator('a[href*="hmrc" i], form[action*="hmrc" i], [data-tax-submission]')).toHaveCount(0);
+  expect(requestedUrls.some(url => /(^|\.)hmrc\.gov\.uk(?:\/|$)|hmrc/i.test(new URL(url).hostname))).toBe(false);
+});
+
 test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Try it with sample data" })).toHaveAttribute("href", "/?demo=1");
@@ -260,9 +327,11 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await expect(page.getByText("New licences are not currently available.", { exact: false })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare your quarterly evidence pack" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "See what is missing before export" })).toBeVisible();
-  await expect(page.getByText("Free core and existing licences", { exact: true })).toBeVisible();
-  await expect(page.locator(".build-id")).toHaveText("v1.0.9");
-  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff"]) {
+  await expect(page.getByText("Free export and existing licences", { exact: true })).toBeVisible();
+  await expect(page.getByText("Evidence pack export is free", { exact: true })).toBeVisible();
+  await expect(page.getByText("Loads 12 records, 3 source files, and one open check. Nothing is saved.", { exact: true })).toBeVisible();
+  await expect(page.locator(".build-id")).toHaveText("v1.0.10");
+  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff", "Core pack export is free", "Keep the core pack free"]) {
     await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
   }
 });
@@ -270,11 +339,11 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
 test("public copy uses one artifact and licence vocabulary", async () => {
   const publicFiles = ["../../README.md", "../../index.html", "../../src/app.ts", "../../src/export.ts", "../../public/404.html", "../../public/manifest.webmanifest"];
   const publicCopy = (await Promise.all(publicFiles.map(path => readFile(new URL(path, import.meta.url), "utf8")))).join("\n");
-  for (const removedCopy of ["evidence handoff", "quarterly handoff", "quarterly-handoff", "Supported edition", "supported-edition", "app shell", "Generated art disclosed", "versioned evidence checklist"]) {
+  for (const removedCopy of ["evidence handoff", "quarterly handoff", "quarterly-handoff", "Supported edition", "supported-edition", "app shell", "Generated art disclosed", "versioned evidence checklist", "core pack", "free core and existing licences"]) {
     expect(publicCopy.toLowerCase()).not.toContain(removedCopy.toLowerCase());
   }
   expect(publicCopy).toContain("Prepare your quarterly evidence pack");
-  expect(publicCopy).toContain("Free core and existing licences");
+  expect(publicCopy).toContain("Free export and existing licences");
   expect(publicCopy).toContain("summary/evidence-pack-summary.pdf");
 });
 
@@ -287,12 +356,13 @@ test("@claim:readiness names every open checklist item before export", async ({ 
 });
 
 test("@claim:standalone-install supplies a standalone PWA manifest", async ({ page }) => {
+  await page.goto("/demo");
   await page.goto("/");
   const manifest = await page.evaluate(async () => await (await fetch("/manifest.webmanifest")).json() as {
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.9");
+  expect(manifest.start_url).toBe("/?v=1.0.10");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -521,7 +591,8 @@ test("@mobile demo banner remains visible while working lower in the sample", as
   await expect(page.getByRole("button", { name: "Start for real" })).toBeVisible();
 });
 
-test("public footers disclose that the hero artwork was generated", async ({ page }) => {
+test("@claim:artwork-provenance public footers disclose that the hero artwork was generated", async ({ page }) => {
+  await page.goto("/demo");
   for (const path of ["/", "/missing-page"]) {
     await page.goto(path);
     await expect(page.locator(".art-credit")).toHaveText("Hero artwork was generated for this product.");

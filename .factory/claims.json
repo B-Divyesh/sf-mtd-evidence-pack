@@ -7,6 +7,13 @@
     "sandbox": "fresh browser context at /demo; change a check, reload, and inspect IndexedDB"
   },
   {
+    "id": "sample-content",
+    "claim": "The demo loads one quarter with 12 categorised records, three source files, and one open checklist item",
+    "where": "landing first-screen result and README sample guide",
+    "test": "npm run test:e2e -- --grep @claim:sample-content",
+    "sandbox": "fresh browser context at /demo; assert the supplied records, source files, and named open checklist item"
+  },
+  {
     "id": "csv-import",
     "claim": "Adds valid categorised CSV records without replacing earlier records and rejects invalid dates or amounts",
     "where": "workspace and README",
@@ -35,11 +42,11 @@
     "sandbox": "demo data; wrong password fails, correct password opens required entries and valid hashes"
   },
   {
-    "id": "free-core-export",
-    "claim": "Core pack export is free",
-    "where": "landing and workspace",
-    "test": "npm run test:e2e -- --grep @claim:free-core-export",
-    "sandbox": "fresh demo with no licence token; complete and inspect an evidence-pack download"
+    "id": "free-evidence-pack",
+    "claim": "Import records, maintain the checklist, attach source files, and export an encrypted evidence pack without a licence",
+    "where": "landing pricing, workspace, README, and Terms",
+    "test": "npm run test:e2e -- --grep @claim:free-evidence-pack",
+    "sandbox": "fresh context begins at /demo, enters an unlicensed real workspace, imports a record, adds a checklist item, attaches a file, and downloads an encrypted evidence pack"
   },
   {
     "id": "local-only",
@@ -78,10 +85,10 @@
   },
   {
     "id": "paid-license",
-    "claim": "A verified licence enables saved cover notes",
-    "where": "pricing and workspace",
+    "claim": "A verified licence enables saved cover notes, and verification sends its token to the Sociobot billing API",
+    "where": "landing pricing, workspace, Privacy page, and README",
     "test": "npm run test:e2e -- --grep @claim:paid-license",
-    "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts the cover-note field is enabled"
+    "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts the exact API request and enabled cover-note field"
   },
   {
     "id": "checkout-unavailable",
@@ -89,5 +96,19 @@
     "where": "landing pricing card and README",
     "test": "npm run test:e2e -- --grep @claim:checkout-unavailable",
     "sandbox": "fresh browser context visits every public product route and asserts there is no price, checkout URL, or purchase action while licence restore remains available"
+  },
+  {
+    "id": "no-tax-submission",
+    "claim": "It does not submit tax returns",
+    "where": "landing limitation section",
+    "test": "npm run test:e2e -- --grep @claim:no-tax-submission",
+    "sandbox": "fresh context begins at /demo, completes a sample export, enters the real workspace, and records that no tax-submission control or HMRC request exists"
+  },
+  {
+    "id": "artwork-provenance",
+    "claim": "Hero artwork was generated for this product",
+    "where": "landing and 404 footers",
+    "test": "npm run test:e2e -- --grep @claim:artwork-provenance",
+    "sandbox": "fresh context begins at /demo and checks the public landing and designed 404 footer disclosure"
   }
 ]

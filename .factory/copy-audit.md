@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited 29 August 2026 for release 1.0.9. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026 for release 1.0.10. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
 | Copy | Words | Result |
 |---|---:|---|
@@ -14,11 +14,11 @@ Audited 29 August 2026 for release 1.0.9. Counts treat hyphenated terms as one w
 | Prepare your quarterly evidence pack | 5 | Plain job headline |
 | For UK sole traders who keep local books and need a clear pack for an accountant or filing software. | 19 | Audience and outcome |
 | Try it with sample data | 5 | Result-naming action |
-| Loads one sample quarter. | 4 | Demo result |
+| Loads 12 records, 3 source files, and one open check. | 9 | `sample-content` demo result |
 | Nothing is saved. | 3 | `demo-sandbox` |
 | Works after your first visit | 5 | `offline-reload` |
 | Records stay on this device | 5 | `local-only` |
-| Core pack export is free | 5 | `free-core-export` |
+| Evidence pack export is free | 5 | `free-evidence-pack` |
 | Q1—Q4 | 1 | Artwork label |
 | Four paper filing houses connected by a coral path under a paper moon. | 13 | Image alternative |
 | Keep source files with the records for one selected quarter. | 10 | `encrypted-pack` |
@@ -45,9 +45,9 @@ Audited 29 August 2026 for release 1.0.9. Counts treat hyphenated terms as one w
 | Prepare records before submission | 4 | Clear limitation heading |
 | It does not submit tax returns. | 6 | Product boundary |
 | Use compatible filing software or an accountant when you are ready to submit. | 13 | Concrete next step |
-| Free core and existing licences | 5 | Clear price and licence label |
-| Keep the core pack free | 5 | Free-core heading |
-| Import records, maintain your checklist, and export the encrypted evidence pack without paying. | 12 | Declared core claims |
+| Free export and existing licences | 5 | Clear price and licence label |
+| Free evidence pack export | 4 | Free-export heading |
+| Import records, maintain your checklist, attach source files, and export the encrypted evidence pack without a licence. | 17 | `free-evidence-pack` |
 | Restore a licence | 3 | Clear section heading |
 | Existing licence holders can restore saved cover notes. | 8 | `paid-license` |
 | New licences are not currently available. | 6 | `checkout-unavailable` |
@@ -56,7 +56,7 @@ Audited 29 August 2026 for release 1.0.9. Counts treat hyphenated terms as one w
 | Prepare a quarterly evidence pack on your device. | 8 | Product footer summary |
 | Hero artwork was generated for this product. | 7 | Image provenance disclosure |
 | Built by Param Factory (external site) | 6 | Clear external link |
-| v1.0.9 | 1 | Build identifier |
+| v1.0.10 | 1 | Build identifier |
 
 ## First-screen read-aloud check
 
