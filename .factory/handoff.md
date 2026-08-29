@@ -55,7 +55,8 @@ After deployment through `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack dist
   unexpected console/page errors.
 - Live Lighthouse report: Performance **100**, Accessibility **100**, Best
   Practices **100**, SEO **100**; LCP **1.0 s**, CLS **0**, TBT **80 ms**.
-  Report: `.factory/polish-evidence-5/live/lighthouse.json`.
+  The recorded report has `runtimeError: null`:
+  `.factory/polish-evidence-5/live/lighthouse.json`.
 
 ## Run and deploy
 

@@ -57,3 +57,6 @@ title, one h1, one main, overflow, and console result for `/`, `/?demo=1`,
 notice for a direct 404 response is excluded by the route-error test.
 
 No review finding remains unresolved.
+
+The recorded live Lighthouse report has `runtimeError: null` and scores 100
+for Performance, Accessibility, Best Practices, and SEO.
