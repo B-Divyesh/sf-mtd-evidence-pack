@@ -43,10 +43,12 @@ full test suite.
   record is `test-results/.last-run.json` with `status: passed`.
 - Local browser suite: 8 unit tests and 24 browser tests passed before the
   follow-up wording/metadata regression tests were added; those two follow-up
-  tests passed locally and against the live URL before handoff.
+  tests passed locally and against the live URL before handoff. The final local
+  `npm test` passed all 8 unit tests and 26 browser tests.
 - Live: `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run
   test:e2e` passed 24 tests before the two follow-up regression tests were
-  added. `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` passed.
+  added; those two tests then passed live as well (26 checks total). `npm run
+  verify:url -- https://mtd-evidence-pack.sociobot.in` passed.
   The cold route metadata check covered `/`, `/?demo=1`, `/demo`,
   `/workspace`, `/privacy`, `/terms`, and `/not-a-real-route`.
 - Accessibility: Playwright Axe scans returned no serious or critical issues on

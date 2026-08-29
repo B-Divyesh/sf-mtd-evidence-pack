@@ -37,10 +37,12 @@ Open `/?demo=1` for the sample, `/workspace` for real local data, `/privacy`,
 
 The clean clone at `/tmp/mtd-evidence-pack-clean.aUbxI9` passed `npm ci`, all
 13 exact claim commands, 8 unit tests, 24 browser tests, build, URL verification,
-and production dependency audit. Live production also passed the 24-test browser
-suite, URL verification, cold route metadata checks, privacy/offline claims, and
-the static 404 check. Screenshots and the finding-by-finding mapping are in
-`.factory/polish-1.md` and `.factory/polish-evidence-1/`.
+and production dependency audit. The final local suite passed 8 unit and 26
+browser tests. Live production passed the 24-test browser suite plus the two
+new wording/metadata tests, URL verification, cold route metadata checks,
+privacy/offline claims, and the static 404 check. Screenshots and the
+finding-by-finding mapping are in `.factory/polish-1.md` and
+`.factory/polish-evidence-1/`.
 
 ## Known gaps
 
