@@ -5,8 +5,6 @@ const BILLING_BASE = "https://api.sociobot.in/api/v1";
 
 type Verdict = { valid: boolean; checkedAt: number };
 
-export function checkoutUrl(): string { return `${BILLING_BASE}/products/${PRODUCT_SLUG}/checkout`; }
-
 export function getLicenseToken(): string { return localStorage.getItem(TOKEN_KEY) ?? ""; }
 export function hasCachedLicense(): boolean {
   try { return Boolean(getLicenseToken()) && (JSON.parse(localStorage.getItem(VERDICT_KEY) ?? "null") as Verdict | null)?.valid === true; }

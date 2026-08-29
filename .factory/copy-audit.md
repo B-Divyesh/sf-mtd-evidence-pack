@@ -32,16 +32,11 @@ Audited 29 August 2026. Counts treat hyphenated terms as one word. No line excee
 | Confirm checklist changes with them. | 5 | — |
 | Keep the core pack free | 5 | — |
 | Import records, maintain your checklist, and export the encrypted pack without paying. | 10 | — |
-| Save cover notes | 3 | — |
-| One payment adds saved cover notes. | 6 | — |
-| The core pack remains free. | 5 | — |
-| Buy the supported edition | 4 | — |
-| Have a licence? | 4 | — |
+| Restore a licence | 3 | — |
+| Existing licence holders can restore saved cover notes. | 8 | — |
+| New purchases are not offered while checkout is unavailable. | 9 | — |
 | Paste your licence | 3 | — |
 | Verify licence | 2 | — |
-| One-time purchase. | 2 | — |
-| Sociobot/Dodo is the merchant of record. | 6 | — |
-| Refunds are handled there. | 4 | — |
 
 ## First-screen read-aloud check
 

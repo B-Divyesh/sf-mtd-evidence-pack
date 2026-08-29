@@ -42,6 +42,29 @@ test("@claim:csv-import rejects impossible dates and missing amounts, then safel
   await expect(page.getByText("Second retained record")).toBeVisible();
 });
 
+test("@claim:period-integrity rejects an outside-period file atomically and clears stale success feedback", async ({ page }) => {
+  await page.goto("/workspace");
+  const fileInput = page.locator("[data-import-csv]");
+  await fileInput.setInputFiles({
+    name: "boundary-records.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category\n2026-04-06,First day record,100,Sales\n2026-07-05,Last day record,-25,Office costs\n")
+  });
+  await expect(page.locator(".message.success")).toHaveText("2 records added. 2 total.");
+
+  await fileInput.setInputFiles({
+    name: "mixed-periods.csv", mimeType: "text/csv",
+    buffer: Buffer.from("date,description,amount,category\n2025-01-01,Outside record,50,Sales\n2026-04-10,Inside but same rejected file,75,Sales\n")
+  });
+  await expect(page.locator(".message.error")).toContainText("Row 2 is outside the selected period (2026-04-06 to 2026-07-05).");
+  await expect(page.locator(".message.success")).toHaveCount(0);
+  await expect(page.locator(".table-summary")).toContainText("2 records");
+  await expect(page.getByText("Outside record", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Inside but same rejected file", { exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText("First day record", { exact: true })).toBeVisible();
+  await expect(page.getByText("Last day record", { exact: true })).toBeVisible();
+});
+
 test("@claim:source-file-size accepts 10 MB and rejects 10 MB plus one byte", async ({ page }) => {
   await page.goto("/demo");
   const fileInput = page.locator("[data-import-docs]");
@@ -139,9 +162,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.5");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.6");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.5");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.6");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -163,8 +186,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.5");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.5");
+  await expect(page.locator(".build-id")).toContainText("v1.0.6");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.6");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -198,25 +221,18 @@ test("@claim:paid-license a verified licence enables saved cover notes", async (
   await expect(page.locator("#cover-note")).toBeEnabled();
 });
 
-test("@claim:paid-checkout sends a buyer to hosted checkout and accepts its returned licence", async ({ page }) => {
-  await page.goto("/");
-  const productOrigin = new URL(page.url()).origin;
-  await page.route("https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout", route => route.fulfill({
-    status: 302,
-    headers: { location: `${productOrigin}/workspace?license=checkout-return-token` }
-  }));
-  await page.route("https://api.sociobot.in/**/verify?license=checkout-return-token", route => route.fulfill({
-    status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" })
-  }));
-  await expect(page.getByText("£24", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Buy the supported edition" })).toHaveAttribute("href", "https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout");
-  await page.getByRole("link", { name: "Buy the supported edition" }).click();
-  await expect(page).toHaveURL(/\/workspace$/);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("sb_license:mtd-evidence-pack"))).toBe("checkout-return-token");
-  await expect(page.locator("#cover-note")).toBeEnabled();
+test("unavailable checkout is not advertised while existing licence restore remains available", async ({ page }) => {
+  for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) {
+    await page.goto(path);
+    await expect(page.locator('a[href*="/checkout"]'), path).toHaveCount(0);
+    await expect(page.getByText("Buy the supported edition", { exact: true }), path).toHaveCount(0);
+    await expect(page.getByText("£24", { exact: true }), path).toHaveCount(0);
+  }
+  await page.goto("/workspace");
+  await expect(page.getByLabel("Paste your licence")).toBeVisible();
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
-  expect(readme).toContain("£24 one-time purchase");
-  expect(readme).toContain("/checkout");
+  expect(readme).not.toContain("/checkout");
+  expect(readme).not.toContain("£24");
 });
 
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
@@ -233,29 +249,34 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.5");
+  expect(manifest.start_url).toBe("/?v=1.0.6");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
   ]));
 });
 
-test("@performance mobile landing keeps blocking work within 200ms", async ({ page }) => {
+test("@performance mobile landing meets LCP, interaction, and transfer budgets", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const session = await page.context().newCDPSession(page);
   await session.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  await session.send("Network.enable");
+  await session.send("Network.emulateNetworkConditions", { offline: false, latency: 150, downloadThroughput: 204_800, uploadThroughput: 96_000 });
   await page.addInitScript(() => {
-    const metrics = window as typeof window & { __totalBlockingTime?: number; __longTasks?: number[] };
-    metrics.__totalBlockingTime = 0;
-    metrics.__longTasks = [];
+    const metrics = window as typeof window & { __lcp?: number[]; __interactions?: number[] };
+    metrics.__lcp = [];
+    metrics.__interactions = [];
+    new PerformanceObserver(list => { for (const entry of list.getEntries()) metrics.__lcp!.push(entry.startTime); })
+      .observe({ type: "largest-contentful-paint", buffered: true });
     new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
-        metrics.__totalBlockingTime! += Math.max(0, entry.duration - 50);
-        metrics.__longTasks!.push(Math.round(entry.duration));
+        const event = entry as PerformanceEntry & { interactionId: number };
+        if (event.interactionId) metrics.__interactions!.push(event.duration);
       }
-    }).observe({ type: "longtask", buffered: true });
+    }).observe({ type: "event", buffered: true, durationThreshold: 16 } as PerformanceObserverInit);
   });
   await page.goto("/");
+  await page.locator(".hero-art img").evaluate((image: HTMLImageElement) => image.complete || new Promise(resolve => image.addEventListener("load", resolve, { once: true })));
   await page.waitForTimeout(600);
   const heroTreatment = await page.locator(".hero-art").evaluate(element => {
     const art = getComputedStyle(element);
@@ -268,12 +289,31 @@ test("@performance mobile landing keeps blocking work within 200ms", async ({ pa
   expect(heroTreatment.clipPath).toBe("none");
   expect(heroTreatment.aspectRatio).toBeCloseTo(1.5, 1);
   expect(heroTreatment.source).toContain("hero-ledger-390.webp");
-  const metrics = await page.evaluate(() => {
-    const values = window as typeof window & { __totalBlockingTime: number; __longTasks: number[] };
-    return { blockingTime: Math.round(values.__totalBlockingTime), longTasks: values.__longTasks };
+  const navigationMetrics = await page.evaluate(() => {
+    const values = window as typeof window & { __lcp: number[] };
+    const resources = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+    const bytes = (entry: PerformanceResourceTiming) => entry.transferSize || entry.encodedBodySize;
+    return {
+      lcp: Math.round(values.__lcp.at(-1) ?? 0),
+      javascriptBytes: resources.filter(entry => new URL(entry.name).pathname.endsWith(".js")).reduce((total, entry) => total + bytes(entry), 0),
+      cssBytes: resources.filter(entry => new URL(entry.name).pathname.endsWith(".css")).reduce((total, entry) => total + bytes(entry), 0)
+    };
   });
-  console.info(`Mobile blocking time: ${metrics.blockingTime} ms; long tasks: ${metrics.longTasks.join(", ") || "none"}`);
-  expect(metrics.blockingTime).toBeLessThanOrEqual(200);
+  expect(navigationMetrics.lcp).toBeGreaterThan(0);
+  expect(navigationMetrics.lcp).toBeLessThan(2_500);
+  expect(navigationMetrics.javascriptBytes).toBeLessThanOrEqual(200 * 1024);
+  expect(navigationMetrics.cssBytes).toBeLessThanOrEqual(50 * 1024);
+
+  await page.getByRole("link", { name: "Try it with sample data" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
+  await page.waitForTimeout(100);
+  const metrics = await page.evaluate(() => {
+    const values = window as typeof window & { __interactions: number[] };
+    return { longestInteraction: Math.round(Math.max(...values.__interactions, 0)) };
+  });
+  console.info(`Mobile LCP: ${navigationMetrics.lcp} ms; interaction: ${metrics.longestInteraction} ms; JS: ${navigationMetrics.javascriptBytes} B; CSS: ${navigationMetrics.cssBytes} B`);
+  expect(metrics.longestInteraction).toBeGreaterThan(0);
+  expect(metrics.longestInteraction).toBeLessThanOrEqual(200);
   await session.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 });
 
@@ -353,6 +393,10 @@ test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
   const workspaceResults = await new AxeBuilder({ page: page as never }).analyze();
   expect(workspaceResults.violations.filter(violation => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
+
+  await page.goto("/privacy");
+  const emailBox = await page.getByRole("link", { name: "privacy@sociobot.in" }).boundingBox();
+  expect(emailBox?.height).toBeGreaterThanOrEqual(44);
 });
 
 test("@mobile 200% text reflows without horizontal overflow and keeps the home target usable", async ({ page }) => {

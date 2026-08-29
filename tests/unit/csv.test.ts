@@ -43,6 +43,21 @@ describe("CSV records", () => {
     expect(result.rows[0].amount).toBe(0);
   });
 
+  it("accepts period boundaries and rejects every row outside them", () => {
+    const result = parseTransactionsCsv([
+      "date,description,amount,category",
+      "2026-04-05,Before the period,10,Sales",
+      "2026-04-06,First boundary,20,Sales",
+      "2026-07-05,Last boundary,30,Sales",
+      "2026-07-06,After the period,40,Sales"
+    ].join("\n"), { start: "2026-04-06", end: "2026-07-05" });
+    expect(result.errors).toEqual([
+      "Row 2 is outside the selected period (2026-04-06 to 2026-07-05).",
+      "Row 5 is outside the selected period (2026-04-06 to 2026-07-05)."
+    ]);
+    expect(result.rows.map(row => row.description)).toEqual(["First boundary", "Last boundary"]);
+  });
+
   it("round trips transaction values", () => {
     const original = sampleWorkspace().transactions;
     const parsed = parseTransactionsCsv(transactionsToCsv(original));

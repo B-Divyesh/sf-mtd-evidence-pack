@@ -31,7 +31,7 @@ export function isGregorianDate(value: string): boolean {
   return day <= daysInMonth[month - 1];
 }
 
-export function parseTransactionsCsv(input: string): CsvResult {
+export function parseTransactionsCsv(input: string, period?: { start: string; end: string }): CsvResult {
   const lines = input.replace(/^\uFEFF/, "").split(/\r?\n/).filter(line => line.trim());
   if (lines.length < 2) return { rows: [], errors: ["The CSV needs a header row and at least one record."] };
   const headers = parseCsvLine(lines[0]).map(header => header.toLowerCase().replace(/\s+/g, "_"));
@@ -48,6 +48,7 @@ export function parseTransactionsCsv(input: string): CsvResult {
     const amount = Number(amountText);
     const date = read("date");
     if (!isGregorianDate(date)) errors.push(`Row ${rowNumber} has an invalid date. Use YYYY-MM-DD.`);
+    else if (period && (date < period.start || date > period.end)) errors.push(`Row ${rowNumber} is outside the selected period (${period.start} to ${period.end}).`);
     else if (!read("description")) errors.push(`Row ${rowNumber} needs a description.`);
     else if (!read("category")) errors.push(`Row ${rowNumber} needs a category.`);
     else if (!amountText || !Number.isFinite(amount)) errors.push(`Row ${rowNumber} has an invalid amount.`);

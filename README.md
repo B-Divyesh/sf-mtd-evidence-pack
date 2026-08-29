@@ -30,7 +30,7 @@ The app shell, sample, and encrypted export work after the first visit. Install 
 
 ## Supported edition
 
-The core import, checklist maintenance, attachments, and encrypted export are free. A £24 one-time purchase adds saved cover notes. [Buy the supported edition](https://api.sociobot.in/api/v1/products/mtd-evidence-pack/checkout). Checkout and licence verification use the Sociobot billing API; no payment provider is embedded here. Existing licence holders can paste a token to restore it.
+The core import, checklist maintenance, attachments, and encrypted export are free. Existing licence holders can paste a token to restore saved cover notes. New purchases are not offered while the factory checkout is unavailable. Licence verification uses the Sociobot billing API.
 
 ## Develop
 
@@ -66,7 +66,7 @@ Deploy the contents of `dist/` to Azure Static Web Apps. `public/staticwebapp.co
 
 CSV headers are `date,description,amount,category,reference`. Dates use `YYYY-MM-DD`. Income is positive and expenses are negative. The `reference` column is optional.
 
-The importer rejects invalid calendar dates and missing amounts. Valid imports add records without replacing earlier records.
+The importer rejects invalid calendar dates, missing amounts, and records outside the selected period. Valid imports add records without replacing earlier records.
 
 ## Licence
 

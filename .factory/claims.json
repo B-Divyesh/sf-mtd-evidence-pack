@@ -14,6 +14,13 @@
     "sandbox": "demo workspace; reject an overflow date and blank or whitespace amount, then import two valid CSV files and assert each earlier record remains"
   },
   {
+    "id": "period-integrity",
+    "claim": "Rejects records outside the selected period before adding any rows from that file",
+    "where": "workspace and README",
+    "test": "npm run test:e2e -- --grep @claim:period-integrity",
+    "sandbox": "fresh real workspace; import both boundary dates, then try a file containing one outside-period and one inside-period row; assert the second file adds nothing and clears earlier success feedback"
+  },
+  {
     "id": "source-file-size",
     "claim": "Each source file can be up to 10 MB",
     "where": "workspace source-file control",
@@ -68,13 +75,6 @@
     "where": "README",
     "test": "npm run test:e2e -- --grep @claim:standalone-install",
     "sandbox": "fresh landing page; inspect the shipped manifest display mode, start URL, and 192/512 icons"
-  },
-  {
-    "id": "paid-checkout",
-    "claim": "A £24 one-time purchase adds saved cover notes",
-    "where": "pricing, terms, and README",
-    "test": "npm run test:e2e -- --grep @claim:paid-checkout",
-    "sandbox": "fresh landing page; intercept the prescribed hosted checkout return and recorded licence verification, then assert saved cover notes unlock"
   },
   {
     "id": "paid-license",

@@ -190,6 +190,7 @@ td small { color: var(--ink-soft); }
 .legal-page, .not-found, .loading-page { width: min(100% - 48px, 780px); min-height: 66vh; margin: 0 auto; padding: 96px 0; }
 .legal-page h1, .not-found h1, .loading-page h1 { font-size: clamp(2.8rem, 6vw, 4.8rem); }
 .legal-page > p { max-width: 66ch; font-size: 1.08rem; }
+.legal-page a { min-height: 44px; display: inline-flex; align-items: center; }
 .legal-page h2 { margin-top: 48px; font-family: inherit; font-size: 1.5rem; letter-spacing: 0; }
 .not-found { position: relative; }
 .lost-moon { position: absolute; z-index: -1; top: 70px; right: 0; width: 220px; height: 220px; border-radius: 50%; background: var(--acid); box-shadow: inset -80px -50px 0 var(--paper); }

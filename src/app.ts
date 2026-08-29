@@ -6,7 +6,7 @@ import { parseTransactionsCsv, CSV_TEMPLATE } from "./csv";
 import { assessReadiness } from "./readiness";
 import { firstOversizedSourceFile, MAX_SOURCE_FILE_LABEL } from "./files";
 import { downloadBlob } from "./download";
-import { captureReturnedLicense, checkoutUrl, hasCachedLicense, restoreLicense, verifyLicense } from "./license";
+import { captureReturnedLicense, hasCachedLicense, restoreLicense, verifyLicense } from "./license";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 let workspace: Workspace = emptyWorkspace();
@@ -53,7 +53,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.5 · Generated art disclosed</p></footer>`;
+  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.6 · Generated art disclosed</p></footer>`;
 }
 
 function shell(content: string, banner = ""): string {
@@ -80,7 +80,7 @@ function landingPage(): string {
   </section>
   <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes.</p></div></li></ol></section>
   <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">A boundary, kept clear</p><h2 id="limits-title">Prepare records for the next handoff</h2></div><p>Use compatible filing software or an accountant when you are ready to submit. Confirm checklist changes with them.</p></section>
-  <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Supported edition</p><h2 id="licence-title">Keep the core pack free</h2><p>Import records, maintain your checklist, and export the encrypted pack without paying.</p></div><div class="price-ticket"><p class="price"><span>£</span>24</p><h3>Save cover notes</h3><p>One payment adds saved cover notes. The core pack remains free.</p><a class="button secondary" href="${checkoutUrl()}">Buy the supported edition</a><details><summary>Have a licence?</summary><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></details><p class="fine-print">One-time purchase. Sociobot/Dodo is the merchant of record. Refunds are handled there.</p></div></section>`, "");
+  <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Supported edition</p><h2 id="licence-title">Keep the core pack free</h2><p>Import records, maintain your checklist, and export the encrypted pack without paying.</p></div><div class="price-ticket"><h3>Restore a licence</h3><p>Existing licence holders can restore saved cover notes. New purchases are not offered while checkout is unavailable.</p><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></div></section>`, "");
 }
 
 function overview(workspace: Workspace): string {
@@ -97,7 +97,7 @@ function workspacePage(): string {
   const docs = workspace.documents.length ? `<ul class="document-list">${workspace.documents.map(document => `<li><span class="file-mark" aria-hidden="true"></span><span><strong>${escapeHtml(document.name)}</strong><small>${Math.max(1, Math.round(document.size / 1024))} KB</small></span><button class="icon-button" type="button" data-remove-document="${escapeHtml(document.id)}" aria-label="Remove ${escapeHtml(document.name)}">×</button></li>`).join("")}</ul>` : `<div class="empty-state"><strong>No source files attached.</strong><p>Add statements, invoices, receipts, or a document index.</p></div>`;
   const checks = workspace.checklist.map(item => `<li><label><input type="checkbox" data-check="${escapeHtml(item.id)}" ${item.done ? "checked" : ""}><span class="check-box" aria-hidden="true"></span><span>${escapeHtml(item.label)}${item.custom ? " <small>Custom</small>" : ""}</span></label>${item.custom ? `<button type="button" class="icon-button" data-remove-check="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.label)}">×</button>` : ""}</li>`).join("");
   const gapList = readiness.gaps.length ? `<ul>${readiness.gaps.map(gap => `<li>${escapeHtml(gap)}</li>`).join("")}</ul>` : `<p class="all-clear"><span aria-hidden="true">✓</span> No open checks remain.</p>`;
-  const supportNotice = licensed || demoMode ? `<p class="licensed-note">Supported edition features are available${demoMode ? " in this sample" : ""}.</p>` : `<aside class="support-nudge">${licenseNotice ? `<p><strong>${escapeHtml(licenseNotice)}</strong></p>` : ""}<p><strong>Save cover notes · £24 once</strong></p><p>The core workspace and encrypted export stay free.</p><a href="${checkoutUrl()}">Buy the supported edition</a><form data-form="restore-license" class="restore-form"><label for="workspace-license">Have a licence? Paste it here</label><input id="workspace-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></aside>`;
+  const supportNotice = licensed || demoMode ? `<p class="licensed-note">Supported edition features are available${demoMode ? " in this sample" : ""}.</p>` : `<aside class="support-nudge">${licenseNotice ? `<p><strong>${escapeHtml(licenseNotice)}</strong></p>` : ""}<p><strong>Already have a supported-edition licence?</strong></p><p>Verify it to restore saved cover notes. The core workspace and encrypted export stay free.</p><form data-form="restore-license" class="restore-form"><label for="workspace-license">Paste your licence</label><input id="workspace-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></aside>`;
 
   return shell(`<section class="workspace-title"><p class="eyebrow">Local quarterly workspace</p><h1>Prepare this quarter’s evidence pack</h1><p>Your work saves on this device.</p></section>
     ${overview(workspace)}
@@ -112,16 +112,16 @@ function workspacePage(): string {
     <section class="danger-zone" aria-labelledby="delete-title"><div><h2 id="delete-title">Delete this workspace</h2><p>This removes records and source files from this browser.</p></div><button class="button danger" type="button" data-action="delete-workspace">Delete local data</button></section>`, demoMode ? demoBanner() : "");
 }
 
-function privacyPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Plain-language policy · 29 August 2026</p><h1>Understand your browser data</h1><p>MTD Evidence Pack works in your browser. The demo uses sample data. Review the data controls in your browser before using the workspace with your own records.</p><h2>Manage local data</h2><p>Use “Delete local data” in the workspace to remove its local record. Browser site-data settings can also remove local workspace data. Exported ZIP files are outside the browser and remain yours to manage.</p><h2>Payments and licences</h2><p>The £24 supported edition uses Sociobot’s hosted checkout. Sociobot/Dodo is the merchant of record. The browser stores a licence token and its daily verification result only after a purchase return or licence restore.</p><h2>Contact</h2><p>Questions can be sent to <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></article>`); }
+function privacyPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Plain-language policy · 29 August 2026</p><h1>Understand your browser data</h1><p>MTD Evidence Pack works in your browser. The demo uses sample data. Review the data controls in your browser before using the workspace with your own records.</p><h2>Manage local data</h2><p>Use “Delete local data” in the workspace to remove its local record. Browser site-data settings can also remove local workspace data. Exported ZIP files are outside the browser and remain yours to manage.</p><h2>Licence checks</h2><p>Restoring a supported-edition licence sends its token to Sociobot. The browser stores the token and its daily verification result.</p><h2>Contact</h2><p>Questions can be sent to <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></article>`); }
 
-function termsPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Terms · 29 August 2026</p><h1>Use this tool to organise records</h1><p>MTD Evidence Pack helps you prepare a local evidence handoff. Obtain suitable advice and use compatible software or an authorised person where needed.</p><h2>Your responsibility</h2><p>Check dates, categories, records, and checklist items before handoff. Keep original records. Use compatible software or an authorised person for any required submission.</p><h2>Supported edition</h2><p>Saved cover notes cost £24 as a one-time purchase. Sociobot/Dodo is the merchant of record. Refunds are handled in hosted checkout. A refunded, expired, or revoked licence stops supported-edition features. The core export remains available.</p><h2>Availability and liability</h2><p>The tool is provided without a promise that it fits every tax situation. To the extent allowed by law, we are not liable for tax decisions, missed deadlines, or lost local data.</p><h2>Fair use</h2><p>Do not attempt to disrupt the service or use it for unlawful records.</p></article>`); }
+function termsPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Terms · 29 August 2026</p><h1>Use this tool to organise records</h1><p>MTD Evidence Pack helps you prepare a local evidence handoff. Obtain suitable advice and use compatible software or an authorised person where needed.</p><h2>Your responsibility</h2><p>Check dates, categories, records, and checklist items before handoff. Keep original records. Use compatible software or an authorised person for any required submission.</p><h2>Supported edition</h2><p>A verified existing licence enables saved cover notes. An expired or revoked licence stops that feature. New purchases are not currently offered. The core export remains available.</p><h2>Availability and liability</h2><p>The tool is provided without a promise that it fits every tax situation. To the extent allowed by law, we are not liable for tax decisions, missed deadlines, or lost local data.</p><h2>Fair use</h2><p>Do not attempt to disrupt the service or use it for unlawful records.</p></article>`); }
 
 function notFoundPage(): string { return shell(`<section class="not-found"><div class="lost-moon" aria-hidden="true"></div><p class="eyebrow">404 · Misfiled page</p><h1>This page is not in the pack</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-link>Return to the home page</a></section>`); }
 
-async function persist(): Promise<void> {
-  if (demoMode) return;
-  try { await saveWorkspace(workspace); statusMessage = "Saved on this device."; }
-  catch { errorMessage = "The browser could not save this change. Check available site storage."; }
+async function persist(successMessage = "Saved on this device."): Promise<void> {
+  if (demoMode) { statusMessage = successMessage; return; }
+  try { await saveWorkspace(workspace); statusMessage = successMessage; }
+  catch { statusMessage = ""; errorMessage = "The browser could not save this change. Check available site storage."; }
 }
 
 function announceRoute(): void {
@@ -193,30 +193,29 @@ app.addEventListener("change", async event => {
     await persist(); render(); return;
   }
   if (input.matches("[data-import-csv]") && input.files?.[0]) {
-    const result = parseTransactionsCsv(await input.files[0].text());
-    if (result.errors.length) errorMessage = `${result.errors.slice(0, 3).join(" ")} Fix the CSV and import it again.`;
+    const result = parseTransactionsCsv(await input.files[0].text(), { start: workspace.periodStart, end: workspace.periodEnd });
+    if (result.errors.length) { statusMessage = ""; errorMessage = `${result.errors.slice(0, 3).join(" ")} Fix the CSV and import it again.`; }
     else {
       workspace.transactions.push(...result.rows);
       errorMessage = "";
-      statusMessage = `${result.rows.length} record${result.rows.length === 1 ? "" : "s"} added. ${workspace.transactions.length} total.`;
-      await persist();
+      await persist(`${result.rows.length} record${result.rows.length === 1 ? "" : "s"} added. ${workspace.transactions.length} total.`);
     }
     render(); return;
   }
   if (input.matches("[data-import-docs]") && input.files) {
     const files = Array.from(input.files);
     const tooLarge = firstOversizedSourceFile(files);
-    if (tooLarge) errorMessage = `${tooLarge.name} is over ${MAX_SOURCE_FILE_LABEL}. Choose a smaller file.`;
+    if (tooLarge) { statusMessage = ""; errorMessage = `${tooLarge.name} is over ${MAX_SOURCE_FILE_LABEL}. Choose a smaller file.`; }
     else {
       workspace.documents.push(...files.map(file => ({ id: crypto.randomUUID(), name: file.name, type: file.type || "application/octet-stream", size: file.size, addedAt: new Date().toISOString(), data: file })));
-      statusMessage = `${files.length} source file${files.length === 1 ? "" : "s"} attached.`; errorMessage = ""; await persist();
+      errorMessage = ""; await persist(`${files.length} source file${files.length === 1 ? "" : "s"} attached.`);
     }
     render(); return;
   }
   if (input.form?.dataset.form === "period") {
     const data = new FormData(input.form);
     workspace.traderName = String(data.get("traderName") ?? ""); workspace.periodName = String(data.get("periodName") ?? ""); workspace.periodStart = String(data.get("periodStart") ?? ""); workspace.periodEnd = String(data.get("periodEnd") ?? "");
-    if (workspace.periodStart > workspace.periodEnd) errorMessage = "The start date is after the end date. Change one of the dates."; else { errorMessage = ""; await persist(); }
+    if (workspace.periodStart > workspace.periodEnd) { statusMessage = ""; errorMessage = "The start date is after the end date. Change one of the dates."; } else { errorMessage = ""; await persist(); }
     render();
   }
 });
