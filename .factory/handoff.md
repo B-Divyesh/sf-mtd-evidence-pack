@@ -1,118 +1,74 @@
-# Handoff — repair 6
+# Handoff — independent verification 7
 
-- Date: 29 August 2026
-- Work order: `mtd-evidence-pack-repair-6`
-- Failed candidate: `729d0165bedc2c8f0d7af15ac30b0b9eeaf090eb`
-- Verifier report: `.factory/verification-6.md`
-- Artifact: local-first static PWA (`dist/`)
-- Production URL: <https://mtd-evidence-pack.sociobot.in>
+- **Outcome:** **PASS**
+- **Date:** 29 August 2026
+- **Work order:** `mtd-evidence-pack-verify-7`
+- **Tested candidate:** `8e2be3c3da974b29b19616089699f94abf23e69b`
+- **Tested URL:** <https://mtd-evidence-pack.sociobot.in>
+- **Detailed report:** `.factory/verification-7.md`
 
-## Outcome
+## What was done
 
-The candidate's product-QA findings are repaired in version 1.0.6. The core
-workflow and every previously passing behavior remain available.
+Performed fresh independent product QA without changing product code. The
+mandatory claims gate ran first from the clean checkout, followed by cold
+first-read, clean local gates, live desktop/mobile workflows, invalid-input and
+recovery cases, encrypted archive inspection, accessibility, privacy request
+logging, security/cache headers, PWA offline/update behavior, performance,
+rate limiting, links, and candidate/deployment parity.
 
-- CSV import now checks each valid date against the selected period. A file
-  with any outside-period row is rejected before any of its rows are added.
-  Both period boundary dates remain valid.
-- Successful real-workspace imports retain the exact added/total count after
-  IndexedDB save. A later import error clears the earlier success message.
-- The privacy email has a 44 px direct hit area. The undersized workspace
-  purchase link was removed with the unavailable purchase offer.
-- The synthetic checkout claim and dead live link were removed. Existing
-  licence return and paste-to-restore flows remain covered. The product now
-  states plainly that new purchases are not offered while factory checkout is
-  unavailable.
-- The flaky renderer-wide blocking-time probe was replaced by the published
-  product budgets: LCP below 2.5 seconds, interaction latency at or below
-  200 ms, initial JavaScript at or below 200 KiB, and CSS at or below 50 KiB.
-  The browser check uses 4× CPU slowdown and a 150 ms/1.6 Mbps network profile.
-- The manifest and service-worker cache moved to version 1.0.6.
+The candidate passes. No critical, high, medium, or low product defect was
+found. The live deployment matches all 26 publicly served build artifacts.
 
-## Regression coverage
+## Verification summary
 
-- `tests/unit/csv.test.ts` checks start/end boundaries and reports every
-  outside-period row.
-- `@claim:period-integrity` imports both boundaries into a real IndexedDB
-  workspace, rejects a mixed-period file atomically, confirms stale success is
-  gone, and reloads the retained records.
-- The unavailable-checkout regression crawls every public route for checkout,
-  price, and buy copy while confirming licence restore is still present.
-- The 390 px mobile test measures the privacy email at at least 44 px high.
-- `@performance` measures throttled LCP, click interaction, initial JS, CSS,
-  the mobile image source, aspect ratio, and simplified mobile art treatment.
+- All 12 exact `.factory/claims.json` commands pass independently.
+- `npm ci`: pass; 0 vulnerabilities.
+- `npm run lint`: pass.
+- `npm test`: pass — 8 unit and 24 browser tests.
+- `npm run build`: pass; `dist/` produced.
+- `npm audit --omit=dev`: pass.
+- Full production Playwright run: pass — 24/24.
+- URL verifier: pass with no browser errors.
+- Live end-to-end real workflow: pass, including invalid input, persistence,
+  ZIP encryption, manifest hashes, recovery, and deletion.
+- Outgoing request log: same-origin for core use; only explicit licence restore
+  contacts the documented Sociobot API.
+- Rate limit: 30 successful verify requests per observed client window;
+  requests 31–40 returned 429 with `Retry-After` (4 seconds at request 31).
+- Axe: zero serious/critical findings on every route and the real 404.
+- 390 px and 200% text: no overflow; no visible target below 44×44 px.
+- PWA: cache `mtd-evidence-pack-v1.0.6`, complete shell/chunk precache, offline
+  demo reload/export, update notice, versioned cache replacement.
+- Lighthouse 12.8.2 clean run: 100 performance, 100 accessibility, 100 best
+  practices, 100 SEO; LCP 903 ms, TBT 36 ms, CLS 0, 67,770 B transfer.
+- Production parity: 26/26 public files match candidate SHA-256.
 
-## Local verification
-
-Run from a clean dependency install:
+## How to reproduce
 
 ```sh
 npm ci
+while IFS= read -r test; do sh -c "$test"; done < <(jq -r '.[].test' .factory/claims.json)
 npm run lint
 npm test
 npm run build
 npm audit --omit=dev
-npm run verify:url -- http://127.0.0.1:4173
+npm run verify:url -- https://mtd-evidence-pack.sociobot.in
+PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e
 ```
 
-Results:
+Open <https://mtd-evidence-pack.sociobot.in> in a fresh context for the cold
+read, or <https://mtd-evidence-pack.sociobot.in/demo> for the isolated sample.
 
-- `npm ci`: 62 packages, 0 vulnerabilities.
-- `npm run lint`: pass (`tsc --noEmit`).
-- `npm test`: pass — 8/8 unit tests and 24/24 Playwright tests across desktop
-  Chromium and the 390×844 mobile project.
-- All 12 commands in `.factory/claims.json` pass independently from fresh
-  browser contexts. Every claim tag occurs exactly once.
-- Five fresh `@performance` runs pass. Throttled LCP was 508, 520, 596, 592,
-  and 588 ms; interaction latency was 24, 16, 24, 24, and 32 ms. Initial JS
-  was 2,141 bytes and CSS was 5,199 bytes in each run.
-- `npm run build`: pass; `dist/index.html` exists. Build output is 1.84 kB gzip
-  initial JS, 4.90 kB gzip CSS, 10.28 kB deferred app JS, and 54.45 kB deferred
-  ZIP JS.
-- `npm audit --omit=dev`: 0 vulnerabilities.
-- Local URL smoke test: pass — 200 response, title, `en-GB`, one h1, main,
-  image alternatives, labelled buttons, and no browser errors.
-- Lighthouse 12.8.2 mobile: 100 performance, 100 accessibility, 100 best
-  practices, 100 SEO; LCP 904 ms, TBT 0 ms, CLS 0, transfer 67,997 bytes.
-- Playwright Axe: zero serious/critical findings on `/`, `/demo`, `/workspace`,
-  `/privacy`, `/terms`, and the designed missing page.
-- Keyboard skip/focus, Space checkbox operation, 200% text reflow, reduced
-  motion, privacy request policy, same-origin local storage, encrypted online
-  and offline export, update announcement, and 390 px layout all pass.
+## Known limitations and next step
 
-## Deployment and live identity
+- New purchases are not offered because the factory billing product remains
+  unavailable. The site exposes no dead checkout or price claim. Existing
+  licence restore works, and the complete core evidence pack remains free.
+- A factory operator may later register the one-time product, verify hosted
+  checkout and return-token behavior, then restore purchase copy and a tagged
+  checkout claim together.
+- A real service-worker upgrade transition requires two deployed versions;
+  update feedback and replacement logic pass in the single-candidate harness.
 
-- Repair commit `2701b19` was pushed to `origin/main`.
-- `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist` completed
-  successfully. Azure deployment ID:
-  `3e6ef189-b70e-4ed4-ad69-bba91eb2d10c`.
-- `https://mtd-evidence-pack.sociobot.in` serves version 1.0.6. The complete
-  live Playwright suite passes 24/24. Live throttled performance measured
-  652 ms LCP, 24 ms interaction, 2,095 bytes initial JS, and 5,380 bytes CSS.
-- The live URL verifier passes with no console errors. The home route returns
-  HTTP 200; an unknown route returns HTTP 404 with the designed recovery page.
-- Live CSP, HSTS, `nosniff`, strict-origin referrer policy, restrictive
-  permissions policy, and response-header-only `frame-ancestors 'none'` are
-  present. Hashed JavaScript responds with one-year immutable caching.
-- Live Lighthouse 12.8.2 mobile: 100 performance, 100 accessibility, 100 best
-  practices, 100 SEO; LCP 921 ms, TBT 12 ms, CLS 0, transfer 67,761 bytes.
-- SHA-256 parity passes for all 26 publicly served `dist/` artifacts; only the
-  host-only `staticwebapp.config.json` is excluded. The live entry files are
-  `index-T7O3gvkj.js`, `index-B5CHlQ6U.css`, and `app-D-q3ugE5.js`.
-- All discovered local and external page links return HTTP 200. The full live
-  workflow makes only same-origin requests unless a user explicitly restores
-  a licence.
-- The live invalid-licence endpoint returns 200 with `reason: "invalid"`.
-  A fresh 35-request allowance check returned 200 for requests 1–30 and 429
-  for requests 31–35 with `Retry-After: 3` on the first limited response.
-
-## Known gap and operator action
-
-The factory checkout endpoint still returns HTTP 404 because no enabled billing
-product exists for `mtd-evidence-pack`. Repository rules prohibit changing
-billing infrastructure, and this worker has no factory product-registration
-tool or billing-admin credential. The dead offer is therefore no longer shown
-or claimed. To resume new sales, the factory operator must register the product
-in the Sociobot billing engine, verify the live redirect and purchase return,
-then restore the price, buy action, terms, and `paid-checkout` claim together.
-Existing verified licences continue to work.
+Verification evidence is under `.factory/verification-evidence-7/`. No product
+code was modified.
