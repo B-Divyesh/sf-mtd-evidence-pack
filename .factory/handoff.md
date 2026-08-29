@@ -1,60 +1,45 @@
-# Handoff — perfection loop round 2
+# Verification handoff — FAIL
 
-- **Outcome:** PASS — all findings from review rounds 1 and 2 are fixed.
-- **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-polish-2`
-- **Repair commits:** `c82cdc26e9dd3137c2e72c3505c2335ae8d668c2`, `15283d5`
-- **Deployment:** `9c313691-1d89-4c1b-9c44-2046f38043ee`
-- **Live URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Finding map:** `.factory/polish-2.md`
+**Date:** 29 August 2026
 
-## What changed
+**Work order:** `mtd-evidence-pack-verify-9`
 
-- Added honest mode-specific first-screen copy: demo changes reset; real workspace changes save locally.
-- Standardised the artifact name to “evidence pack” across UI, legal pages, metadata, README, manifest, PDF content, and ZIP paths.
-- Replaced vague licence wording with “Free core and existing licences”.
-- Removed README implementation jargon and the unusable generated-art disclosure from the public footer.
-- Bumped the PWA and cache version to 1.0.8.
-- Extended tests for demo isolation copy, vocabulary, root/social metadata, every claim tag, and the renamed encrypted-pack contents.
-- Updated `.factory/claims.json`, `.factory/demo.md`, `.factory/copy-audit.md`, and the 69-character verb-first catalog description.
+**Candidate:** `20c1706a621698a4561198ff6d074faad6715bb8`
 
-The paper-moon ledger identity, original illustration, local-first PWA class, and static deployment model are unchanged.
+**Live URL:** <https://mtd-evidence-pack.sociobot.in>
+**Outcome:** **FAIL — release blocked by invisible keyboard focus on both core file-import controls.**
 
-## Verification
+Full evidence and reproduction details are in `.factory/verification-9.md`.
 
-From final clean clone `/tmp/mtd-polish2-final.59Rkcs` at `d85e8a2`:
+## What was verified
 
-```sh
-npm ci                         # pass; 0 vulnerabilities
-npm run build                  # pass; dist/index.html produced
-npm run lint                   # pass
-npm test                       # pass; 9 unit + 27 browser tests
-npm audit --omit=dev           # pass; 0 vulnerabilities
-```
+- Ran `npm ci` and every exact test in `.factory/claims.json` first: all 13 claim commands passed.
+- Performed the cold live first-read test: what it does, who it serves, the first action, and the one-click sample demo all passed.
+- Ran `npm test` (9 unit + 27 browser tests), `npm run lint`, `npm run build`, `npm audit --omit=dev`, the URL verifier, and the complete 27-test suite against production. All passed.
+- Confirmed all 26 served candidate build files match production byte-for-byte. The earlier deployment-only concern was not reproduced.
+- Independently exercised normal imports, period and amount boundaries, malformed input, recovery, append, attachment, checklist, persistence, deletion, password errors, encrypted export, ZIP contents/hashes, navigation, mobile, reduced motion, privacy requests, response headers, caching, licence failure, rate limiting, service-worker update checks, and offline reload/export.
+- Fresh Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.1 s, CLS 0, TBT 0 ms.
+- The Sociobot licence endpoint allowed 30 sequential requests from one client; request 31 returned 429 with `Retry-After`.
 
-Every one of the 13 exact claim commands in `.factory/claims.json` was run independently and passed: `demo-sandbox`, `csv-import`, `period-integrity`, `source-file-size`, `encrypted-pack`, `free-core-export`, `local-only`, `offline-reload`, `custom-checklist`, `readiness`, `standalone-install`, `paid-license`, and `checkout-unavailable`.
+## Blocking defect
 
-Production checks:
+Tab reaches the CSV and source-file inputs, but each focused input is fully transparent. Its focus outline is therefore invisible, while the visible `.file-button` label has no outline. This reproduces on desktop and 390 px and violates the required visible-focus baseline at the product's essential import step.
+
+## Other findings
+
+- Medium: at 390 px the demo banner becomes `position: relative` and scrolls out of view, so it is not persistent.
+- Low: generated hero-art provenance is documented internally but not disclosed on a public About/footer surface.
+
+## Verification commands
 
 ```sh
-PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e
-# 27 passed
-
+npm ci
+npm test
+npm run lint
+npm run build
+npm audit --omit=dev
 npm run verify:url -- https://mtd-evidence-pack.sociobot.in
-# passed: status, title, lang, one h1, main, alt text, button labels, console
+PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e
 ```
 
-- Live cold checks found no console errors and only same-origin demo requests.
-- `/`, `/demo`, `/workspace`, `/privacy`, and `/terms` returned 200 with route-specific metadata; `/not-a-real-route` returned the designed 404.
-- Every crawled product and footer link returned 200; the mail link is explicit.
-- Playwright Axe found zero serious or critical violations across all routes and the 404.
-- Keyboard Space, skip link, route focus, 44 px targets, 390 px layout, and 200% text reflow passed.
-- Offline reload and encrypted ZIP export passed from the cached demo.
-- Final live performance test: LCP 616 ms, longest interaction 32 ms, initial JS 2,120 B, CSS 5,380 B.
-- Live Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.0 s, CLS 0, TBT 80 ms.
-
-Evidence is in `.factory/polish-evidence-2/`, including live landing, demo, 404 screenshots and Lighthouse JSON.
-
-## Known gaps and next steps
-
-None. No review finding or acceptance gap remains.
+No product code was modified. Only this handoff and `.factory/verification-9.md` were added/updated for independent QA.
