@@ -1,19 +1,40 @@
-# Verification 11 handoff — PASS
+# Adversarial review 4 handoff — FAIL
 
 - **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-verify-11`
-- **Verified candidate:** `3d7fce1d05ae38b060513f5161dcbe109c7b97d2`
+- **Work order:** `mtd-evidence-pack-review-4`
+- **Reviewed commit:** `66778d5e7fb4206fc282f42e8e069cc749dbdfbf`
 - **Live URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Decision:** **PASS**
+- **Decision:** **FAIL**
 
-Independent verification ran from this clean checkout without product-code changes. All 16 exact declared claim commands passed, as did `npm test` (9 unit and 36 browser tests), `npm run lint`, and `npm run build`. The same 36 browser tests passed against the live URL, whose built HTML, entry JS, and CSS exactly match this candidate's `dist/` output.
+This review changed no product code. It added `.factory/review-4.md` and
+replaced this handoff with the round-four result.
 
-The cold first screen plainly explains the job, audience, and first action, and exposes one-click **Try it with sample data**. Live PWA/offline reload, service-worker update check, 390 px mobile, keyboard focus, reduced motion, request logging, response headers, caches, rate limiting, and Lighthouse were verified. Lighthouse mobile was 100/100/100/100 with 1,077 ms LCP, 77 ms TBT, and 0 CLS. The observed licence-verification allowance is 30 requests per client window; request 31 returns 429 with `Retry-After`.
+## Verification performed
 
-See [`.factory/verification-11.md`](verification-11.md) for the complete command-level evidence and claim table.
+- Fresh mobile and desktop cold reads at 390 × 844 and 1440 × 900.
+- One-click sample, Reset, sticky banner, demo-to-real workspace isolation,
+  offline/privacy request logging, and live route checks.
+- Every one of the 16 exact commands in `.factory/claims.json` from clean clone
+  `/tmp/mtd-review4.GYfJKD`; all passed.
+- Clean-clone `npm test` (9 unit and 36 browser tests), `npm run build`, and
+  `npm run lint`; all passed.
+- Live 36-test Playwright suite and `npm run verify:url`; both passed.
+- Live metadata, headers, dead-link crawl, History API focus/announcement,
+  Back/Forward scroll, 404, 200% text, mobile overflow, and Playwright Axe
+  checks.
+- All earlier review, polish, and handoff findings retested against live and
+  source.
 
-## Known gap
+## Known gaps
 
-One non-blocking P2 axe moderate advisory remains on `/workspace`: `landmark-complementary-is-top-level` for the nested licence-restoration `aside`. There are no axe serious or critical findings, no P0/P1 defects, console errors, privacy leaks, or deployment mismatch.
+The complete evidence and exact fixes are in `.factory/review-4.md`. Two
+findings are blocking:
 
-The product intentionally does not submit tax returns, calculate tax, connect to banks, or provide tax advice. It prepares a local encrypted evidence pack for compatible filing software or an accountant.
+1. A cold demo reads the real licence key; `/?demo=1` can verify it and write a
+   real verdict while saying nothing is saved.
+2. Browser Back returns to the right route and h1 but loses the previous
+   scroll position.
+
+Eight minor copy and route-contract findings remain: the offline fact is
+vague, two README phrases and the hash description use jargon, the 404 has
+three metaphor/mood lines, and its static metadata omits the apple-touch icon.
