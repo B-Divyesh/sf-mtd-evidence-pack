@@ -50,3 +50,15 @@ Routing evidence:
 ## Known gaps and next steps
 
 None. No finding or deferred task remains.
+
+## Independent verifier update — 29 August 2026
+
+**Candidate:** `0bf1aa717291853801883ef65ac9b7a01527c295`
+**Live URL:** <https://mtd-evidence-pack.sociobot.in>
+**Result:** **PASS**
+
+Fresh independent QA confirms the live deployment is byte-identical to this candidate’s production build. All 16 declared claims passed individually from a clean install and `/demo`; `npm test` (9 unit + 38 browser tests), `npm run lint`, `npm run build`, the full 38-test live-browser suite, and the URL verifier pass. PWA update/offline reload, privacy requests and headers, 390 px mobile, keyboard/focus, reduced motion, serious/critical axe, and verifier API rate limiting were checked.
+
+Observed licence-verification allowance: 30 requests per client window; requests 31–35 returned 429 with `Retry-After: 4`. The sole open item is a non-blocking P2 moderate axe landmark-nesting advisory on `/workspace` (`landmark-complementary-is-top-level`).
+
+Exact evidence: `.factory/verification-12.md`.
