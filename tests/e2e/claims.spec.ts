@@ -347,6 +347,12 @@ test("public copy uses one artifact and licence vocabulary", async () => {
   expect(publicCopy).toContain("summary/evidence-pack-summary.pdf");
 });
 
+test("README links directly to the live product Privacy page", async () => {
+  const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
+  expect(readme).toContain("[Privacy](https://mtd-evidence-pack.sociobot.in/privacy)");
+  expect(readme).not.toContain("[Privacy](/privacy)");
+});
+
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
   await page.goto("/demo");
   await expect(page.getByRole("heading", { level: 3, name: "1 open item" })).toBeVisible();
