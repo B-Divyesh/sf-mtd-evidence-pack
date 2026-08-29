@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { isGregorianDate, parseCsvLine, parseTransactionsCsv, transactionsToCsv } from "../../src/csv";
 import { sampleWorkspace } from "../../src/sample";
@@ -67,7 +68,7 @@ describe("CSV records", () => {
   });
 });
 
-describe("handoff output", () => {
+describe("evidence pack output", () => {
   it("names every open check", () => {
     const result = assessReadiness(sampleWorkspace());
     expect(result.percent).toBe(86);
@@ -79,5 +80,17 @@ describe("handoff output", () => {
     expect(pdf.type).toBe("application/pdf");
     expect(await pdf.text()).toMatch(/^%PDF-1.4/);
     expect(await pdf.text()).toContain("MTD EVIDENCE PACK");
+  });
+});
+
+describe("claim contract", () => {
+  it("declares each claim tag exactly once", async () => {
+    const claims = JSON.parse(await readFile(new URL("../../.factory/claims.json", import.meta.url), "utf8")) as Array<{ id: string; test: string }>;
+    const browserTests = await readFile(new URL("../e2e/claims.spec.ts", import.meta.url), "utf8");
+    expect(new Set(claims.map(claim => claim.id)).size).toBe(claims.length);
+    for (const claim of claims) {
+      expect(claim.test).toContain(`@claim:${claim.id}`);
+      expect(browserTests.split(`@claim:${claim.id}`).length - 1, claim.id).toBe(1);
+    }
   });
 });

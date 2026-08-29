@@ -17,11 +17,11 @@ export function buildSummaryPdf(workspace: Workspace): Blob {
   const categoryTotals = new Map<string, number>();
   workspace.transactions.forEach(row => categoryTotals.set(row.category, (categoryTotals.get(row.category) ?? 0) + row.amount));
   const lines = [
-    "MTD EVIDENCE PACK - QUARTERLY HANDOFF",
+    "MTD EVIDENCE PACK - QUARTERLY RECORDS",
     workspace.traderName || "Trader name not provided",
     `${workspace.periodName} | ${workspace.periodStart} to ${workspace.periodEnd}`,
     "",
-    "HANDOFF STATUS",
+    "PACK STATUS",
     `${readiness.complete} of ${readiness.total} checklist items complete (${readiness.percent}%)`,
     `${workspace.transactions.length} bookkeeping records | ${workspace.documents.length} source files`,
     "",
@@ -77,7 +77,7 @@ export async function buildEvidenceZip(workspace: Workspace, password: string): 
   const readiness = assessReadiness(workspace);
   const files = [
     { path: "records/transactions.csv", blob: csv },
-    { path: "summary/quarterly-handoff.pdf", blob: pdf },
+    { path: "summary/evidence-pack-summary.pdf", blob: pdf },
     ...workspace.documents.map((document, index) => ({ path: `source-files/${String(index + 1).padStart(2, "0")}-${safeName(document.name)}`, blob: document.data }))
   ];
   const manifest = {

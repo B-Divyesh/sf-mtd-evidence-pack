@@ -2,7 +2,7 @@
 
 Prepare a quarterly MTD evidence pack from local bookkeeping records.
 
-MTD Evidence Pack is for UK sole traders who keep their own books. Import a categorised CSV and attach source files. Check one quarter before exporting an encrypted handoff for your accountant or compatible filing software.
+MTD Evidence Pack is for UK sole traders who keep their own books. Import a categorised CSV and attach source files. Check one quarter before exporting an encrypted evidence pack for your accountant or compatible filing software.
 
 Use compatible filing software or an accountant when you are ready to submit.
 
@@ -15,7 +15,7 @@ Open `/?demo=1` locally or visit <https://mtd-evidence-pack.sociobot.in/?demo=1>
 The password-protected ZIP contains:
 
 - `records/transactions.csv`
-- `summary/quarterly-handoff.pdf`
+- `summary/evidence-pack-summary.pdf`
 - attached source files
 - `manifest.json` with SHA-256 hashes and checklist status
 - `README.txt`
@@ -26,9 +26,9 @@ Send the ZIP password through a different channel. The password is never saved.
 
 See the in-product [Privacy](/privacy) page for browser-data controls and licence checks.
 
-The app shell, sample, and encrypted export work after the first visit. Install it from a supporting browser for a standalone window.
+The app, sample, and encrypted export work after the first visit. Install it from a supporting browser for a standalone window.
 
-## Supported edition
+## Free core and existing licences
 
 The core import, checklist maintenance, attachments, and encrypted export are free. Existing licence holders can paste a token to restore saved cover notes. New licences are not currently available. Licence verification uses the Sociobot billing API.
 

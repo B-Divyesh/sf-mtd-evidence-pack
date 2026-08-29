@@ -64,7 +64,7 @@
   },
   {
     "id": "readiness",
-    "claim": "See what is missing before handoff",
+    "claim": "See what is missing before export",
     "where": "landing preview and export panel",
     "test": "npm run test:e2e -- --grep @claim:readiness",
     "sandbox": "fresh demo; assert the one named open checklist item is shown, complete it, and assert the ready state"

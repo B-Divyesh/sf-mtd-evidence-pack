@@ -1,45 +1,65 @@
 # Landing-page copy audit
 
-Audited 29 August 2026. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026 for release 1.0.8. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
-| Copy | Words | Flag |
+| Copy | Words | Result |
 |---|---:|---|
-| Local quarterly record check | 4 | — |
-| Prepare your quarterly evidence handoff | 5 | — |
-| For UK sole traders who keep local books and need a clear pack for an accountant or filing software. | 19 | — |
+| Skip to main content | 4 | Clear action |
+| MTD Evidence Pack | 3 | Product name |
+| Demo | 1 | Clear navigation |
+| Workspace | 1 | Clear navigation |
+| Privacy | 1 | Clear navigation |
+| Online | 1 | Network status |
+| Local quarterly record check | 4 | Clear section label |
+| Prepare your quarterly evidence pack | 5 | Plain job headline |
+| For UK sole traders who keep local books and need a clear pack for an accountant or filing software. | 19 | Audience and outcome |
 | Try it with sample data | 5 | Result-naming action |
-| Loads one sample quarter. Nothing is saved. | 7 | Demo explanation |
-| Works after your first visit | 5 | Declared claim |
-| Records stay on this device | 5 | Declared claim |
-| Core pack export is free | 5 | Declared claim |
-| Keep source files with the records for one selected quarter. | 10 | — |
-| Readiness preview | 2 | Section label |
-| See what is missing before handoff | 6 | Declared claim |
-| The checklist and records stay beside each other. | 7 | — |
-| Open items remain named. | 4 | Declared claim |
-| How it works | 3 | — |
-| Build the pack in three passes | 6 | — |
-| Set the period | 3 | — |
-| Name the quarter and check its start and end dates. | 10 | — |
-| Import and match | 3 | — |
-| Add a categorised CSV. Attach statements, invoices, receipts, or an index. | 10 | — |
-| Check and export | 3 | — |
-| Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes. | 16 | Declared claim |
-| What this tool does not do | 6 | — |
-| Prepare records for the next handoff | 6 | — |
-| It does not submit tax returns. | 6 | — |
-| Use compatible filing software or an accountant when you are ready to submit. | 13 | — |
-| Keep the core pack free | 5 | — |
-| Import records, maintain your checklist, and export the encrypted pack without paying. | 10 | Declared claims |
-| Restore a licence | 3 | — |
-| Existing licence holders can restore saved cover notes. | 8 | Declared claim |
-| New licences are not currently available. | 6 | Declared claim |
-| Paste your licence | 3 | — |
+| Loads one sample quarter. | 4 | Demo result |
+| Nothing is saved. | 3 | `demo-sandbox` |
+| Works after your first visit | 5 | `offline-reload` |
+| Records stay on this device | 5 | `local-only` |
+| Core pack export is free | 5 | `free-core-export` |
+| Q1—Q4 | 1 | Artwork label |
+| Four paper filing houses connected by a coral path under a paper moon. | 13 | Image alternative |
+| Keep source files with the records for one selected quarter. | 10 | `encrypted-pack` |
+| Readiness preview | 2 | Clear section label |
+| See what is missing before export | 6 | `readiness` |
+| The checklist and records stay beside each other. | 8 | Preview description |
+| Open items remain named. | 4 | `readiness` |
+| Quarter 1 · 2026–27 | 3 | Sample label |
+| 6 of 7 checked | 4 | Sample status |
+| 12 bookkeeping records | 3 | Sample status |
+| 3 source files | 3 | Sample status |
+| Invoices and receipts can be matched to records | 8 | Sample checklist item |
+| How it works | 3 | Clear section label |
+| Build the pack in three passes | 6 | Process heading |
+| Set the period | 3 | Step heading |
+| Name the quarter and check its start and end dates. | 10 | Concrete instruction |
+| Import and match | 3 | Step heading |
+| Add a categorised CSV. | 4 | `csv-import` |
+| Attach statements, invoices, receipts, or an index. | 7 | `source-file-size`, `encrypted-pack` |
+| Check and export | 3 | Step heading |
+| Close each checklist item. | 4 | `readiness` |
+| Download one password-protected ZIP with CSV, PDF, files, and hashes. | 10 | `encrypted-pack` |
+| What this tool does not do | 6 | Clear limitation label |
+| Prepare records before submission | 4 | Clear limitation heading |
+| It does not submit tax returns. | 6 | Product boundary |
+| Use compatible filing software or an accountant when you are ready to submit. | 13 | Concrete next step |
+| Free core and existing licences | 5 | Clear price and licence label |
+| Keep the core pack free | 5 | Free-core heading |
+| Import records, maintain your checklist, and export the encrypted evidence pack without paying. | 12 | Declared core claims |
+| Restore a licence | 3 | Clear section heading |
+| Existing licence holders can restore saved cover notes. | 8 | `paid-license` |
+| New licences are not currently available. | 6 | `checkout-unavailable` |
+| Paste your licence | 3 | Bound field label |
 | Verify licence | 2 | Result-naming action |
+| Prepare a quarterly evidence pack on your device. | 8 | Product footer summary |
+| Built by Param Factory (external site) | 6 | Clear external link |
+| v1.0.8 | 1 | Build identifier |
 
 ## First-screen read-aloud check
 
-“Prepare your quarterly evidence handoff. For UK sole traders who keep local books and need a clear pack for an accountant or filing software. Try it with sample data.”
+“Prepare your quarterly evidence pack. For UK sole traders who keep local books and need a clear pack for an accountant or filing software. Try it with sample data.”
 
 The job, user, outcome, and first action fit in one short breath.
 
@@ -54,4 +74,4 @@ The job, user, outcome, and first action fit in one short breath.
 | Completion control | checklist item |
 | Sample environment | demo |
 | Paid entitlement | licence |
-| Paid option | supported edition |
+| Transfer action | share |

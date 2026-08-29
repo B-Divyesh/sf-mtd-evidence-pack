@@ -7,6 +7,8 @@ test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   await page.goto("/?demo=1");
   await expect(page).toHaveURL("/?demo=1");
   await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+  await expect(page.getByText("The sample resets when you reload or leave the demo.")).toBeVisible();
+  await expect(page.getByText("Your work saves on this device.", { exact: true })).toHaveCount(0);
   const first = page.locator('[data-check="sales"]');
   await expect(first).toBeChecked();
   await first.uncheck();
@@ -15,6 +17,8 @@ test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
   expect(await page.evaluate(async () => (await indexedDB.databases()).map(database => database.name))).not.toContain("mtd-evidence-pack:v1");
   await page.getByRole("button", { name: "Start for real" }).click();
   await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
+  await expect(page.getByText("Your work saves on this device.", { exact: true })).toBeVisible();
+  await expect(page.getByText("The sample resets when you reload or leave the demo.")).toHaveCount(0);
 });
 
 test("@claim:csv-import rejects impossible dates and missing amounts, then safely adds valid CSV records", async ({ page }) => {
@@ -119,9 +123,9 @@ test("@claim:encrypted-pack @claim:free-core-export exports a password-protected
   await wrongReader.close();
   const reader = new ZipReader(new BlobReader(new Blob([archiveBytes])), { password: "correct-horse-26" });
   const entries = await reader.getEntries();
-  expect(entries.map(entry => entry.filename)).toEqual(expect.arrayContaining(["README.txt", "manifest.json", "records/transactions.csv", "summary/quarterly-handoff.pdf"]));
+  expect(entries.map(entry => entry.filename)).toEqual(expect.arrayContaining(["README.txt", "manifest.json", "records/transactions.csv", "summary/evidence-pack-summary.pdf"]));
   expect(entries.some(entry => entry.filename.startsWith("source-files/"))).toBe(true);
-  const pdfEntry = entries.find(entry => entry.filename === "summary/quarterly-handoff.pdf")!;
+  const pdfEntry = entries.find(entry => entry.filename === "summary/evidence-pack-summary.pdf")!;
   expect(await pdfEntry.getData!(new TextWriter())).toMatch(/^%PDF-1.4/);
   const manifestEntry = entries.find(entry => entry.filename === "manifest.json")!;
   const manifest = JSON.parse(await manifestEntry.getData!(new TextWriter())) as { recordCount: number; files: Array<{ sha256: string }> };
@@ -164,9 +168,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.7");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.8");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.7");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.8");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -188,8 +192,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.7");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.7");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.8");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.8");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -246,9 +250,24 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await expect(page.getByText("What this tool does not do", { exact: true })).toBeVisible();
   await expect(page.getByText("It does not submit tax returns.", { exact: false })).toBeVisible();
   await expect(page.getByText("New licences are not currently available.", { exact: false })).toBeVisible();
-  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable"]) {
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare your quarterly evidence pack" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "See what is missing before export" })).toBeVisible();
+  await expect(page.getByText("Free core and existing licences", { exact: true })).toBeVisible();
+  await expect(page.locator(".build-id")).toHaveText("v1.0.8");
+  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff"]) {
     await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
   }
+});
+
+test("public copy uses one artifact and licence vocabulary", async () => {
+  const publicFiles = ["../../README.md", "../../index.html", "../../src/app.ts", "../../src/export.ts", "../../public/404.html", "../../public/manifest.webmanifest"];
+  const publicCopy = (await Promise.all(publicFiles.map(path => readFile(new URL(path, import.meta.url), "utf8")))).join("\n");
+  for (const removedCopy of ["evidence handoff", "quarterly handoff", "quarterly-handoff", "Supported edition", "supported-edition", "app shell", "Generated art disclosed"]) {
+    expect(publicCopy.toLowerCase()).not.toContain(removedCopy.toLowerCase());
+  }
+  expect(publicCopy).toContain("Prepare your quarterly evidence pack");
+  expect(publicCopy).toContain("Free core and existing licences");
+  expect(publicCopy).toContain("summary/evidence-pack-summary.pdf");
 });
 
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
@@ -256,7 +275,7 @@ test("@claim:readiness names every open checklist item before export", async ({ 
   await expect(page.getByRole("heading", { level: 3, name: "1 open item" })).toBeVisible();
   await expect(page.locator(".gaps")).toContainText("Invoices and receipts can be matched to records");
   await page.locator('[data-check="receipts"]').check();
-  await expect(page.getByRole("heading", { level: 3, name: "Ready to hand over" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: "Ready to share" })).toBeVisible();
 });
 
 test("@claim:standalone-install supplies a standalone PWA manifest", async ({ page }) => {
@@ -265,7 +284,7 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.7");
+  expect(manifest.start_url).toBe("/?v=1.0.8");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -363,6 +382,7 @@ test("static-host routing keeps product paths and returns the designed 404 page 
 
 test("app routes update title, description, and canonical metadata", async ({ page }) => {
   const routes = [
+    ["/", "MTD Evidence Pack — prepare quarterly records", "Import bookkeeping CSV records, check the quarter and export an encrypted evidence pack for your accountant or filing software.", "https://mtd-evidence-pack.sociobot.in/"],
     ["/?demo=1", "Demo — MTD Evidence Pack", "Try one sample bookkeeping quarter. Sample changes are not saved.", "https://mtd-evidence-pack.sociobot.in/demo"],
     ["/workspace", "Workspace — MTD Evidence Pack", "Prepare a local quarterly evidence pack from bookkeeping records and source files.", "https://mtd-evidence-pack.sociobot.in/workspace"],
     ["/privacy", "Privacy — MTD Evidence Pack", "Learn how MTD Evidence Pack stores local browser data and licence details.", "https://mtd-evidence-pack.sociobot.in/privacy"],
