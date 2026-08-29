@@ -1,33 +1,41 @@
-# Handoff — MTD Evidence Pack verification 4
+# Handoff — MTD Evidence Pack repair 4
 
-Date: 28 August 2026
-Candidate: `3b2ccf6843c7fb168c00126114d2b06272f454b3`
-Live URL: <https://mtd-evidence-pack.sociobot.in>
+Date: 29 August 2026  
+Base candidate: `3b2ccf6843c7fb168c00126114d2b06272f454b3`  
+Repair commit: `856e851ba768bf142087fcc156cbfc66bd8370c5`  
+Artifact: local-first static PWA (`dist/`)
 
 ## Release status
 
-**FAIL — do not release.** The live site is byte-identical to this candidate, but it fails the mandatory clean local mobile-performance gate and does not let a new real user maintain their own checklist as required by the brief.
+**Ready for deployment verification.** Both release blockers in independent verification 4 are repaired locally. The production deployment check is recorded after the configured static deployment completes.
 
-## Verification performed
+## Repairs
 
-- Ran clean `npm ci`, every one of the eight exact `.factory/claims.json` `/demo` commands, `npm run lint`, `npm run build`, and `npm test`.
-- All declared claims passed: demo isolation, valid/invalid CSV import, exact source-file size boundary, encrypted ZIP export and non-retention of the password, free export, local persistence/privacy, offline reload, and recorded licence unlock.
-- First-read, sample action, normal workflow, invalid-input recovery, 390 px layout, keyboard, focus, reduced motion, live axe serious/critical checks, PWA update/offline reload, request log, headers, caching, and full live artifact parity were checked.
-- Optional licence verification permits 30 requests from one client, then returns 429 with `Retry-After: 3`.
+1. **User-maintained checklist is now free core functionality.** A fresh real workspace reached through `/demo` → **Start for real** has an enabled **Add your own check** field. Added checks save to the real IndexedDB workspace and persist after reload. Saved cover notes remain the optional verified-licence feature. This restores the brief requirement without requiring a new-user purchase path.
+2. **Mobile blocking work was reduced.** The 390px first screen now selects a 390×260 WebP derivative (4,874 bytes) rather than decoding the 720px hero. The service-worker cache/version and PWA start URL are `1.0.4`; the performance regression additionally asserts the 390px source is used.
+3. **All hashed asset output has immutable host caching.** `staticwebapp.config.json` now applies `public, max-age=31536000, immutable` to `/assets/*`, covering the deferred `export-*.js` chunk as well as entry and ZIP chunks.
 
-## Blocking findings
+## Regression coverage
 
-1. **High — `npm test` fails.** The checked-in 4x CPU mobile assertion requires <= 200 ms blocking time. A fresh production-preview focused retry measured 307 ms (long tasks 171 ms and 236 ms).
-2. **High — the brief’s user-maintained checklist is unavailable to a new user.** In a real unlicensed workspace, **Add your own check** is disabled. The only route to it is a pre-existing verified licence, but the site exposes no checkout/purchase path. A user can only tick the fixed seven-item list.
+- `@claim:custom-checklist` starts a fresh unlicensed real workspace, adds a named custom check, reloads, and verifies that the check remains while the paid cover-note field remains locked.
+- `@claim:paid-license` verifies a recorded valid licence enables a saved cover note.
+- The mobile `@performance` test asserts the 390px hero asset and keeps the existing <= 200 ms total-blocking-time requirement.
+- The cache policy test asserts the `/assets/*` immutable route configuration.
 
-## Non-blocking finding
+## Verification
 
-- **Low —** `assets/export-DxcVyV6k.js` is content-hashed but served with `max-age=30`, not the one-year immutable policy used by the other hashed application chunks.
+- Clean install: `npm ci` — passed (63 packages audited; 0 vulnerabilities).
+- Type/lint: `npm run lint` — passed.
+- Production build: `npm run build` — passed; `dist/index.html` is present. Build output: entry JS 30.75 kB raw / 11.15 kB gzip; CSS 18.29 kB raw / 4.80 kB gzip; deferred ZIP 54.45 kB gzip.
+- Full quality gate: `npm test` — passed: 7 Vitest tests and 18 Playwright tests, including desktop, 390px mobile, keyboard, route/error, privacy/request, PWA update/offline, and axe serious/critical checks. The 4×-CPU performance measurement was 37 ms total blocking time (<= 200 ms limit).
+- URL smoke: `npm run verify:url -- http://127.0.0.1:4174` — passed: HTTP 200, title, `lang=en-GB`, exactly one h1, main landmark, image alt attributes, labelled buttons, and no console errors.
+- Every exact declared claim command was run from the production-preview test setup and passed: `demo-sandbox`, `csv-import`, `source-file-size`, `encrypted-pack`, `free-core-export`, `local-only`, `offline-reload`, `custom-checklist`, and `paid-license`.
+- The Playwright axe integration is the accessibility runner; all public routes had zero serious or critical violations. The suite also verified skip-link focus, Space checklist operation, client-route heading focus, reduced-motion mobile hero treatment, and zero 390px horizontal overflow.
 
-## Next steps
+## Privacy and PWA
 
-1. Make real-user custom checklist maintenance accessible, then test it without a mocked or pre-existing licence.
-2. Reduce first-load blocking work until clean `npm test` and focused `@performance` reliably pass.
-3. Fix immutable caching for the deferred export chunk, deploy, and rerun the evidence in [verification-4.md](verification-4.md).
+The request-log claim permits only the product origin during demo-to-real CSV import. Licence verification remains opt-in through the existing Sociobot endpoint. The full suite verifies the demo namespace, no retained ZIP password, service-worker update notice, and an offline `/demo` reload after the first visit.
 
-No product source was changed during verification.
+## Known gaps / next step
+
+No known local product gaps. Push this repair to `main`, then verify deployment parity, the `/assets/export-*.js` immutable header, live 390px performance, and the unlicensed real-workspace checklist flow.
