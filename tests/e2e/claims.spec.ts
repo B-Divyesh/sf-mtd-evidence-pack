@@ -11,22 +11,81 @@ async function tabTo(page: Page, target: Locator): Promise<void> {
   throw new Error("Keyboard focus did not reach the expected control.");
 }
 
-test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
-  await page.goto("/?demo=1");
-  await expect(page).toHaveURL("/?demo=1");
-  await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
-  await expect(page.getByText("The sample resets when you reload or leave the demo.")).toBeVisible();
-  await expect(page.getByText("Your work saves on this device.", { exact: true })).toHaveCount(0);
+test("@claim:demo-sandbox sample changes are not saved and real storage stays untouched", async ({ page }) => {
+  const billingRequests: string[] = [];
+  await page.route("https://api.sociobot.in/**", route => {
+    billingRequests.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) });
+  });
+  await page.goto("/");
+  const realWorkspace = {
+    version: 1,
+    traderName: "Existing Real Books",
+    periodName: "Quarter 1 · 2026–27",
+    periodStart: "2026-04-06",
+    periodEnd: "2026-07-05",
+    coverNote: "Private real note",
+    transactions: [{ id: "real-1", date: "2026-04-10", description: "Existing real record", amount: 125, category: "Sales", reference: "REAL-1" }],
+    checklist: [],
+    documents: [],
+    updatedAt: "2026-08-29T00:00:00.000Z"
+  };
+  const realVerdict = JSON.stringify({ valid: false, checkedAt: 0 });
+  await page.evaluate(async ({ workspace, verdict }) => {
+    localStorage.setItem("sb_license:mtd-evidence-pack", "real-existing-token");
+    localStorage.setItem("sb_license:mtd-evidence-pack:verdict", verdict);
+    const request = indexedDB.open("mtd-evidence-pack:v1", 1);
+    await new Promise<void>((resolve, reject) => {
+      request.onupgradeneeded = () => request.result.createObjectStore("workspace");
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction("workspace", "readwrite");
+        transaction.objectStore("workspace").put(workspace, "current");
+        transaction.oncomplete = () => { database.close(); resolve(); };
+        transaction.onerror = () => reject(transaction.error);
+      };
+    });
+  }, { workspace: realWorkspace, verdict: realVerdict });
+
+  for (const demoUrl of ["/?demo=1&license=ignored-query-token", "/demo?license=ignored-path-token"]) {
+    await page.goto(demoUrl);
+    await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+    await expect(page.getByText("The sample resets when you reload or leave the demo.")).toBeVisible();
+    await expect(page.getByText("Your work saves on this device.", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Existing real record", { exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => ({
+      token: localStorage.getItem("sb_license:mtd-evidence-pack"),
+      verdict: localStorage.getItem("sb_license:mtd-evidence-pack:verdict")
+    }))).toEqual({ token: "real-existing-token", verdict: realVerdict });
+    expect(billingRequests).toEqual([]);
+  }
+
   const first = page.locator('[data-check="sales"]');
   await expect(first).toBeChecked();
   await first.uncheck();
   await page.reload();
   await expect(page.locator('[data-check="sales"]')).toBeChecked();
-  expect(await page.evaluate(async () => (await indexedDB.databases()).map(database => database.name))).not.toContain("mtd-evidence-pack:v1");
+  expect(await page.evaluate(async () => {
+    const request = indexedDB.open("mtd-evidence-pack:v1");
+    return await new Promise<string>((resolve, reject) => {
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const database = request.result;
+        const get = database.transaction("workspace").objectStore("workspace").get("current");
+        get.onsuccess = () => { database.close(); resolve(get.result?.transactions?.[0]?.description ?? ""); };
+        get.onerror = () => reject(get.error);
+      };
+    });
+  })).toBe("Existing real record");
+  expect(billingRequests).toEqual([]);
+
   await page.getByRole("button", { name: "Start for real" }).click();
-  await expect(page.getByText("No bookkeeping records yet.")).toBeVisible();
+  await expect(page.getByText("Existing real record", { exact: true })).toBeVisible();
   await expect(page.getByText("Your work saves on this device.", { exact: true })).toBeVisible();
   await expect(page.getByText("The sample resets when you reload or leave the demo.")).toHaveCount(0);
+  await expect.poll(() => billingRequests.length).toBe(1);
+  expect(new URL(billingRequests[0]).searchParams.get("license")).toBe("real-existing-token");
 });
 
 test("@claim:sample-content loads the documented records, files, and open checklist item", async ({ page }) => {
@@ -215,9 +274,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.10");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.11");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.10");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.11");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -239,8 +298,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toHaveText("v1.0.10");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.10");
+  await expect(page.locator(".build-id")).toHaveText("v1.0.11");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.11");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -329,9 +388,11 @@ test("landing uses the reviewed plain-language wording", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 2, name: "See what is missing before export" })).toBeVisible();
   await expect(page.getByText("Free export and existing licences", { exact: true })).toBeVisible();
   await expect(page.getByText("Evidence pack export is free", { exact: true })).toBeVisible();
+  await expect(page.getByText("Works offline after your first visit", { exact: true })).toBeVisible();
+  await expect(page.locator(".steps li").last()).toContainText("Download one password-protected ZIP with records, a PDF summary, source files, and file-change checks.");
   await expect(page.getByText("Loads 12 records, 3 source files, and one open check. Nothing is saved.", { exact: true })).toBeVisible();
-  await expect(page.locator(".build-id")).toHaveText("v1.0.10");
-  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff", "Core pack export is free", "Keep the core pack free"]) {
+  await expect(page.locator(".build-id")).toHaveText("v1.0.11");
+  for (const removedCopy of ["Four quarters. One traceable path through the source records.", "Field note 01", "The product itself", "A boundary, kept clear", "checkout is unavailable", "Supported edition", "Generated art disclosed", "Prepare your quarterly evidence handoff", "See what is missing before handoff", "Core pack export is free", "Keep the core pack free", "Works after your first visit", "Download one password-protected ZIP with CSV, PDF, files, and hashes."]) {
     await expect(page.getByText(removedCopy, { exact: true })).toHaveCount(0);
   }
 });
@@ -351,6 +412,21 @@ test("README links directly to the live product Privacy page", async () => {
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
   expect(readme).toContain("[Privacy](https://mtd-evidence-pack.sociobot.in/privacy)");
   expect(readme).not.toContain("[Privacy](/privacy)");
+  expect(readme).toContain("to learn how to delete local data and how licence checks work");
+  expect(readme).toContain("If your browser offers Install, use it to open the tool in its own window.");
+  expect(readme).toContain("file-change checks (SHA-256)");
+  expect(readme).not.toContain("browser-data controls");
+  expect(readme).not.toContain("supporting browser");
+  expect(readme).not.toContain("standalone window");
+});
+
+test("claim contract declares every tagged claim exactly once", async () => {
+  const claims = JSON.parse(await readFile(new URL("../../.factory/claims.json", import.meta.url), "utf8")) as Array<{ id: string; test: string }>;
+  const source = await readFile(new URL("./claims.spec.ts", import.meta.url), "utf8");
+  const tags = [...source.matchAll(/test\(\s*["'`][^"'`]*@claim:([a-z0-9-]+)/g)].map(match => match[1]);
+  expect(tags.sort()).toEqual(claims.map(claim => claim.id).sort());
+  expect(new Set(tags).size).toBe(tags.length);
+  for (const claim of claims) expect(claim.test).toContain(`--grep @claim:${claim.id}`);
 });
 
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
@@ -368,7 +444,7 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.10");
+  expect(manifest.start_url).toBe("/?v=1.0.11");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -454,11 +530,18 @@ test("static-host routing keeps product paths and returns the designed 404 page 
   expect(config.routes.filter(route => route.rewrite === "/index.html").map(route => route.route)).toEqual(["/", "/demo", "/workspace", "/privacy", "/terms"]);
   expect(config.responseOverrides?.["404"]?.rewrite).toBe("/404.html");
   const missing = await readFile(new URL("../../public/404.html", import.meta.url), "utf8");
-  expect(missing).toContain("This page is not in the pack");
+  expect(missing).toContain("Page not found");
+  expect(missing).toContain("We could not find this page");
+  expect(missing).not.toContain("Misfiled page");
+  expect(missing).not.toContain("Find your way back");
   expect(missing).toContain('meta name="description"');
   expect(missing).toContain('rel="canonical"');
   expect(missing).toContain('property="og:title"');
   expect(missing).toContain('name="twitter:card"');
+  expect(missing).toContain('rel="icon" href="/favicon.svg"');
+  expect(missing).toContain('rel="apple-touch-icon" href="/icons/apple-touch-icon.png"');
+  expect(missing).toContain('class="moon-mark"');
+  expect(missing).toContain('data-network');
   expect(missing).toContain('href="/workspace"');
   expect(missing).toContain('href="/privacy"');
   expect(missing).toContain('href="/terms"');
@@ -501,7 +584,7 @@ test("routes load without browser errors", async ({ page }) => {
   page.on("pageerror", error => errors.push({ text: error.message, url: "pageerror" }));
   for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) await page.goto(path);
   const missingResponse = await page.goto("/missing-page");
-  await expect(page.getByRole("heading", { level: 1, name: "This page is not in the pack" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "We could not find this page" })).toBeVisible();
   if (process.env.PLAYWRIGHT_BASE_URL) expect(missingResponse?.status()).toBe(404);
   const unexpectedErrors = errors.filter(error => !(error.url.endsWith("/missing-page") && error.text.includes("server responded with a status of 404")));
   expect(unexpectedErrors).toEqual([]);
@@ -561,6 +644,33 @@ test("@keyboard cold load starts at the skip link and client navigation focuses 
 
   await page.getByRole("link", { name: "Demo", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeFocused();
+});
+
+test("@routing Back and Forward restore each route's scroll position and focus its heading", async ({ page }) => {
+  await page.goto("/");
+  const landingScroll = await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    scrollTo(0, 813);
+    return scrollY;
+  });
+  expect(landingScroll).toBeGreaterThan(700);
+  await page.evaluate(() => (document.querySelector<HTMLAnchorElement>('a[href="/demo"]')!).click());
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+
+  const demoScroll = await page.evaluate(() => { scrollTo(0, 1024); return scrollY; });
+  expect(demoScroll).toBeGreaterThan(900);
+  await page.waitForTimeout(50);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare your quarterly evidence pack" })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(landingScroll);
+
+  await page.goForward();
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(demoScroll);
 });
 
 test("@mobile core demo controls fit a 390px viewport", async ({ page }) => {

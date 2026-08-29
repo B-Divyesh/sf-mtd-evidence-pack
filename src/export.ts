@@ -93,7 +93,7 @@ export async function buildEvidenceZip(workspace: Workspace, password: string): 
     notice: "This pack organises records. It is not tax advice, filing software, or legal certification."
   };
   const writer = new ZipWriter(new BlobWriter("application/zip"), { password, encryptionStrength: 3 });
-  await writer.add("README.txt", new TextReader("Encrypted quarterly evidence pack\n\nOpen this ZIP with the password supplied separately. Check manifest.json for file hashes. This is a read-only snapshot, not tax advice or filing software.\n"));
+  await writer.add("README.txt", new TextReader("Encrypted quarterly evidence pack\n\nOpen this ZIP with the password supplied separately. Check manifest.json for file-change checks (SHA-256). This is a read-only snapshot, not tax advice or filing software.\n"));
   await writer.add("manifest.json", new TextReader(JSON.stringify(manifest, null, 2)));
   for (const file of files) await writer.add(file.path, new BlobReader(file.blob));
   return writer.close();

@@ -1,5 +1,12 @@
 import "./styles.css";
-import { captureReturnedLicense } from "./license";
+import { captureReturnedLicense, isDemoLocation } from "./license";
+
+type RouteState = { mtdScroll?: { x: number; y: number } } & Record<string, unknown>;
+
+function saveCurrentScroll(): void {
+  const current = history.state && typeof history.state === "object" ? history.state as RouteState : {};
+  history.replaceState({ ...current, mtdScroll: { x: scrollX, y: scrollY } }, "", location.href);
+}
 
 function updateNetworkState(): void {
   const state = document.querySelector<HTMLElement>("[data-network]");
@@ -17,7 +24,9 @@ function registerServiceWorker(): void {
   }).catch(() => { /* The online workspace remains available if registration fails. */ });
 }
 
-captureReturnedLicense();
+history.scrollRestoration = "manual";
+saveCurrentScroll();
+if (!isDemoLocation()) captureReturnedLicense();
 updateNetworkState();
 window.addEventListener("online", updateNetworkState);
 window.addEventListener("offline", updateNetworkState);
@@ -30,7 +39,8 @@ const loadApplicationForNavigation = (event: MouseEvent): void => {
   const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[data-link]");
   if (!link || link.origin !== location.origin) return;
   event.preventDefault();
-  history.pushState({}, "", link.pathname + link.search);
+  saveCurrentScroll();
+  history.pushState({ mtdScroll: { x: 0, y: 0 } }, "", link.pathname + link.search);
   (window as typeof window & { __mtdClientNavigation?: boolean }).__mtdClientNavigation = true;
   root.removeEventListener("click", loadApplicationForNavigation);
   void import("./app");

@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited 29 August 2026 for release 1.0.10. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
+Audited 29 August 2026 for release 1.0.11. Counts treat hyphenated terms as one word. No line exceeds 22 words. No line contains a banned marketing word.
 
 | Copy | Words | Result |
 |---|---:|---|
@@ -16,7 +16,7 @@ Audited 29 August 2026 for release 1.0.10. Counts treat hyphenated terms as one 
 | Try it with sample data | 5 | Result-naming action |
 | Loads 12 records, 3 source files, and one open check. | 9 | `sample-content` demo result |
 | Nothing is saved. | 3 | `demo-sandbox` |
-| Works after your first visit | 5 | `offline-reload` |
+| Works offline after your first visit | 6 | `offline-reload` |
 | Records stay on this device | 5 | `local-only` |
 | Evidence pack export is free | 5 | `free-evidence-pack` |
 | Q1—Q4 | 1 | Artwork label |
@@ -40,7 +40,7 @@ Audited 29 August 2026 for release 1.0.10. Counts treat hyphenated terms as one 
 | Attach statements, invoices, receipts, or an index. | 7 | `source-file-size`, `encrypted-pack` |
 | Check and export | 3 | Step heading |
 | Close each checklist item. | 4 | `readiness` |
-| Download one password-protected ZIP with CSV, PDF, files, and hashes. | 10 | `encrypted-pack` |
+| Download one password-protected ZIP with records, a PDF summary, source files, and file-change checks. | 14 | `encrypted-pack` |
 | What this tool does not do | 6 | Clear limitation label |
 | Prepare records before submission | 4 | Clear limitation heading |
 | It does not submit tax returns. | 6 | Product boundary |
@@ -56,7 +56,16 @@ Audited 29 August 2026 for release 1.0.10. Counts treat hyphenated terms as one 
 | Prepare a quarterly evidence pack on your device. | 8 | Product footer summary |
 | Hero artwork was generated for this product. | 7 | Image provenance disclosure |
 | Built by Param Factory (external site) | 6 | Clear external link |
-| v1.0.10 | 1 | Build identifier |
+| v1.0.11 | 1 | Build identifier |
+
+## Round-four README copy
+
+| Copy | Words | Result |
+|---|---:|---|
+| `manifest.json`, with checklist status and file-change checks (SHA-256) | 8 | `encrypted-pack` |
+| See the in-product Privacy page to learn how to delete local data and how licence checks work. | 17 | Concrete privacy instruction |
+| The app, sample, and encrypted export work offline after the first visit. | 12 | `offline-reload` |
+| If your browser offers Install, use it to open the tool in its own window. | 14 | `standalone-install` |
 
 ## First-screen read-aloud check
 

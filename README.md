@@ -17,16 +17,16 @@ The password-protected ZIP contains:
 - `records/transactions.csv`
 - `summary/evidence-pack-summary.pdf`
 - attached source files
-- `manifest.json` with SHA-256 hashes and checklist status
+- `manifest.json`, with checklist status and file-change checks (SHA-256)
 - `README.txt`
 
 Send the ZIP password through a different channel. The password is never saved.
 
 ## Privacy and offline use
 
-See the in-product [Privacy](https://mtd-evidence-pack.sociobot.in/privacy) page for browser-data controls and licence checks.
+See the in-product [Privacy](https://mtd-evidence-pack.sociobot.in/privacy) page to learn how to delete local data and how licence checks work.
 
-The app, sample, and encrypted export work after the first visit. Install it from a supporting browser for a standalone window.
+The app, sample, and encrypted export work offline after the first visit. If your browser offers Install, use it to open the tool in its own window.
 
 ## Free export and existing licences
 

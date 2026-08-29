@@ -6,7 +6,7 @@ import { parseTransactionsCsv, CSV_TEMPLATE } from "./csv";
 import { assessReadiness } from "./readiness";
 import { firstOversizedSourceFile, MAX_SOURCE_FILE_LABEL } from "./files";
 import { downloadBlob } from "./download";
-import { captureReturnedLicense, hasCachedLicense, restoreLicense, verifyLicense } from "./license";
+import { captureReturnedLicense, hasCachedLicense, isDemoLocation, restoreLicense, verifyLicense } from "./license";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 let workspace: Workspace = emptyWorkspace();
@@ -16,12 +16,15 @@ let licensed = false;
 let statusMessage = "";
 let errorMessage = "";
 let licenseNotice = "";
-let shouldScrollTop = false;
-let initialRouteOpened = (window as typeof window & { __mtdClientNavigation?: boolean }).__mtdClientNavigation === true;
+let realLicenseLoaded = false;
+const clientNavigation = (window as typeof window & { __mtdClientNavigation?: boolean }).__mtdClientNavigation === true;
+let initialRouteOpened = clientNavigation;
+type RouteState = { mtdScroll?: { x: number; y: number } } & Record<string, unknown>;
+let pendingScroll: { x: number; y: number } | null = clientNavigation ? { x: 0, y: 0 } : null;
 
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 const money = (value: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(value);
-const isDemoRoute = () => location.pathname === "/demo" || new URLSearchParams(location.search).get("demo") === "1";
+const isDemoRoute = () => isDemoLocation();
 const metadataFor = (path: string) => isDemoRoute() ? {
   title: "Demo — MTD Evidence Pack",
   description: "Try one sample bookkeeping quarter. Sample changes are not saved."
@@ -53,8 +56,10 @@ function setRouteMetadata(path: string): void {
 }
 
 function navigate(path: string, replace = false): void {
-  shouldScrollTop = true;
-  if (replace) history.replaceState({}, "", path); else history.pushState({}, "", path);
+  saveCurrentScroll();
+  pendingScroll = { x: 0, y: 0 };
+  const state: RouteState = { mtdScroll: pendingScroll };
+  if (replace) history.replaceState(state, "", path); else history.pushState(state, "", path);
   void openRoute();
 }
 
@@ -70,7 +75,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer class="site-footer"><p>Prepare a quarterly evidence pack on your device.<span class="art-credit">Hero artwork was generated for this product.</span></p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.10</p></footer>`;
+  return `<footer class="site-footer"><p>Prepare a quarterly evidence pack on your device.<span class="art-credit">Hero artwork was generated for this product.</span></p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.11</p></footer>`;
 }
 
 function shell(content: string, banner = ""): string {
@@ -88,14 +93,14 @@ function landingPage(): string {
       <h1>Prepare your quarterly evidence pack</h1>
       <p class="lede">For UK sole traders who keep local books and need a clear pack for an accountant or filing software.</p>
       <div class="hero-action"><a class="button primary" href="/?demo=1" data-link>Try it with sample data</a><span>Loads 12 records, 3 source files, and one open check. Nothing is saved.</span></div>
-      <ul class="plain-facts" aria-label="Product facts"><li>Works after your first visit</li><li>Records stay on this device</li><li>Evidence pack export is free</li></ul>
+      <ul class="plain-facts" aria-label="Product facts"><li>Works offline after your first visit</li><li>Records stay on this device</li><li>Evidence pack export is free</li></ul>
     </div>
     <figure class="hero-art paper-rise"><picture><source media="(max-width: 700px)" srcset="/assets/hero-ledger-390.webp"><img src="/assets/hero-ledger.webp" width="1280" height="853" alt="Four paper filing houses connected by a coral path under a paper moon." fetchpriority="high" decoding="async"></picture><figcaption>Keep source files with the records for one selected quarter.</figcaption></figure>
   </section>
   <section class="preview-section" aria-labelledby="preview-title"><div class="section-number">Readiness preview</div><div><h2 id="preview-title">See what is missing before export</h2><p>The checklist and records stay beside each other. Open items remain named.</p></div>
     <div class="mini-workspace"><div class="mini-head"><strong>Quarter 1 · 2026–27</strong><span>6 of 7 checked</span></div><div class="mini-grid"><div><span class="large-number">12</span><span>bookkeeping records</span></div><div><span class="large-number">3</span><span>source files</span></div><div class="open-item"><span aria-hidden="true">○</span><span>Invoices and receipts can be matched to records</span></div></div></div>
   </section>
-  <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes.</p></div></li></ol></section>
+  <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with records, a PDF summary, source files, and file-change checks.</p></div></li></ol></section>
   <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">What this tool does not do</p><h2 id="limits-title">Prepare records before submission</h2></div><p>It does not submit tax returns. Use compatible filing software or an accountant when you are ready to submit.</p></section>
   <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Free export and existing licences</p><h2 id="licence-title">Free evidence pack export</h2><p>Import records, maintain your checklist, attach source files, and export the encrypted evidence pack without a licence.</p></div><div class="price-ticket"><h3>Restore a licence</h3><p>Existing licence holders can restore saved cover notes. New licences are not currently available.</p><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></div></section>`, "");
 }
@@ -125,7 +130,7 @@ function workspacePage(): string {
     <section class="work-section" aria-labelledby="files-title"><div class="section-lead"><span>03</span><div><h2 id="files-title">Attach source files</h2><p>The encrypted ZIP keeps these files beside the records and manifest.</p></div></div><div class="import-bar"><label class="file-button">Choose source files<input type="file" multiple data-import-docs></label><span>Each file can be up to 10 MB. Add originals or a clear index.</span></div>${docs}</section>
     <section class="work-section" aria-labelledby="check-title"><div class="section-lead"><span>04</span><div><h2 id="check-title">Check the evidence trail</h2><p>Working checklist v1.0 for UK sole traders, 2026–27. Confirm it with your accountant.</p></div></div><ul class="checklist">${checks}</ul><form data-form="custom-check" class="inline-form"><label for="custom-check">Add your own check</label><div><input id="custom-check" name="label" maxlength="100"><button class="button small" type="submit">Add check</button></div></form>${supportNotice}</section>
     <section class="work-section" aria-labelledby="note-title"><div class="section-lead"><span>05</span><div><h2 id="note-title">Leave a cover note</h2><p>Name any point that needs the accountant’s judgement.</p></div></div><label for="cover-note" class="full-label">Cover note<textarea id="cover-note" data-cover-note rows="4" maxlength="600" ${licensed || demoMode ? "" : "disabled"}>${escapeHtml(workspace.coverNote)}</textarea></label>${!licensed && !demoMode ? `<p class="field-note">Cover notes require a verified existing licence. Encrypted evidence pack export remains available.</p>` : ""}</section>
-    <section class="export-section" aria-labelledby="export-title"><div><p class="eyebrow">Final pass</p><h2 id="export-title">Export one encrypted evidence pack</h2><p>The ZIP contains a CSV, PDF summary, source files, manifest, and SHA-256 file hashes.</p><div class="gaps"><h3>${readiness.gaps.length ? `${readiness.gaps.length} open item${readiness.gaps.length === 1 ? "" : "s"}` : "Ready to share"}</h3>${gapList}</div></div><form data-form="export" class="export-form"><label for="pack-password">ZIP password <span>At least 8 characters</span></label><input id="pack-password" name="password" type="password" minlength="8" autocomplete="new-password" required><label for="pack-password-confirm">Repeat password</label><input id="pack-password-confirm" name="confirm" type="password" minlength="8" autocomplete="new-password" required><button class="button primary" type="submit" ${workspace.transactions.length ? "" : "disabled"}>Export encrypted ZIP</button><p>Send the password by a different channel. It is never saved.</p></form></section>
+    <section class="export-section" aria-labelledby="export-title"><div><p class="eyebrow">Final pass</p><h2 id="export-title">Export one encrypted evidence pack</h2><p>The ZIP contains records, a PDF summary, source files, a manifest, and file-change checks (SHA-256).</p><div class="gaps"><h3>${readiness.gaps.length ? `${readiness.gaps.length} open item${readiness.gaps.length === 1 ? "" : "s"}` : "Ready to share"}</h3>${gapList}</div></div><form data-form="export" class="export-form"><label for="pack-password">ZIP password <span>At least 8 characters</span></label><input id="pack-password" name="password" type="password" minlength="8" autocomplete="new-password" required><label for="pack-password-confirm">Repeat password</label><input id="pack-password-confirm" name="confirm" type="password" minlength="8" autocomplete="new-password" required><button class="button primary" type="submit" ${workspace.transactions.length ? "" : "disabled"}>Export encrypted ZIP</button><p>Send the password by a different channel. It is never saved.</p></form></section>
     <section class="danger-zone" aria-labelledby="delete-title"><div><h2 id="delete-title">Delete this workspace</h2><p>This removes records and source files from this browser.</p></div><button class="button danger" type="button" data-action="delete-workspace">Delete local data</button></section>`, demoMode ? demoBanner() : "");
 }
 
@@ -133,12 +138,22 @@ function privacyPage(): string { return shell(`<article class="legal-page"><p cl
 
 function termsPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Terms · 29 August 2026</p><h1>Use this tool to organise records</h1><p>MTD Evidence Pack helps you prepare a local evidence pack. Obtain suitable advice and use compatible software or an authorised person where needed.</p><h2>Your responsibility</h2><p>Check dates, categories, records, and checklist items before sharing the pack. Keep original records. Use compatible software or an authorised person for any required submission.</p><h2>Existing licences</h2><p>A verified existing licence enables saved cover notes. New licences are not currently available. Encrypted evidence pack export remains available.</p><h2>Availability and liability</h2><p>The tool is provided without a promise that it fits every tax situation. To the extent allowed by law, we are not liable for tax decisions, missed deadlines, or lost local data.</p><h2>Fair use</h2><p>Do not attempt to disrupt the service or use it for unlawful records.</p></article>`); }
 
-function notFoundPage(): string { return shell(`<section class="not-found"><div class="lost-moon" aria-hidden="true"></div><p class="eyebrow">404 · Misfiled page</p><h1>This page is not in the pack</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-link>Return to the home page</a></section>`); }
+function notFoundPage(): string { return shell(`<section class="not-found"><div class="lost-moon" aria-hidden="true"></div><p class="eyebrow">Page not found</p><h1>We could not find this page</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-link>Return to the home page</a></section>`); }
 
 async function persist(successMessage = "Saved on this device."): Promise<void> {
   if (demoMode) { statusMessage = successMessage; return; }
   try { await saveWorkspace(workspace); statusMessage = successMessage; }
   catch { statusMessage = ""; errorMessage = "The browser could not save this change. Check available site storage."; }
+}
+
+function saveCurrentScroll(): void {
+  const current = history.state && typeof history.state === "object" ? history.state as RouteState : {};
+  history.replaceState({ ...current, mtdScroll: { x: scrollX, y: scrollY } }, "", location.href);
+}
+
+function scrollFromState(state: unknown): { x: number; y: number } {
+  const saved = state && typeof state === "object" ? (state as RouteState).mtdScroll : undefined;
+  return saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) ? saved : { x: 0, y: 0 };
 }
 
 function announceRoute(): void {
@@ -147,8 +162,25 @@ function announceRoute(): void {
   heading.tabIndex = -1;
   heading.focus({ preventScroll: true });
   document.querySelector("#route-announcer")!.textContent = heading.textContent ?? "Page changed";
-  if (shouldScrollTop) scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  shouldScrollTop = false;
+  if (pendingScroll) {
+    const inlineBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "auto";
+    scrollTo(pendingScroll.x, pendingScroll.y);
+    document.documentElement.style.scrollBehavior = inlineBehavior;
+  }
+  pendingScroll = null;
+}
+
+function loadRealLicenseState(): void {
+  if (realLicenseLoaded || demoMode || location.pathname !== "/workspace") return;
+  realLicenseLoaded = true;
+  captureReturnedLicense();
+  licensed = hasCachedLicense();
+  void verifyLicense().then(valid => {
+    if (isDemoRoute()) return;
+    if (licensed && !valid) licenseNotice = "This licence is no longer active.";
+    if (valid !== licensed) { licensed = valid; render(); }
+  });
 }
 
 async function openRoute(): Promise<void> {
@@ -157,8 +189,15 @@ async function openRoute(): Promise<void> {
   demoMode = isDemoRoute();
   if (wasDemo && !demoMode) loaded = false;
   statusMessage = ""; errorMessage = "";
-  if (demoMode) { workspace = sampleWorkspace(); loaded = true; }
+  if (demoMode) {
+    licensed = false;
+    licenseNotice = "";
+    realLicenseLoaded = false;
+    workspace = sampleWorkspace();
+    loaded = true;
+  }
   else if (path === "/workspace" && !loaded) {
+    loadRealLicenseState();
     render();
     try { workspace = await loadWorkspace(); } catch { workspace = emptyWorkspace(); errorMessage = "Stored records could not be opened. Start again or clear this site’s storage."; }
     loaded = true;
@@ -281,14 +320,18 @@ app.addEventListener("submit", async event => {
   }
 });
 
-window.addEventListener("popstate", () => { shouldScrollTop = false; loaded = location.pathname === "/workspace" ? loaded : false; void openRoute(); });
+history.scrollRestoration = "manual";
+let scrollFrame = 0;
+window.addEventListener("scroll", () => {
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; saveCurrentScroll(); });
+}, { passive: true });
+window.addEventListener("popstate", event => {
+  pendingScroll = scrollFromState(event.state);
+  loaded = location.pathname === "/workspace" ? loaded : false;
+  void openRoute();
+});
 window.addEventListener("online", () => { const state = document.querySelector<HTMLElement>("[data-network]"); if (state) state.textContent = "Online"; });
 window.addEventListener("offline", () => { const state = document.querySelector<HTMLElement>("[data-network]"); if (state) state.textContent = "Offline"; });
 
-captureReturnedLicense();
-licensed = hasCachedLicense();
 void openRoute();
-if (location.pathname !== "/demo") void verifyLicense().then(valid => {
-  if (licensed && !valid) licenseNotice = "This licence is no longer active.";
-  if (valid !== licensed) { licensed = valid; render(); }
-});

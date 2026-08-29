@@ -5,23 +5,32 @@ const BILLING_BASE = "https://api.sociobot.in/api/v1";
 
 type Verdict = { valid: boolean; checkedAt: number };
 
-export function getLicenseToken(): string { return localStorage.getItem(TOKEN_KEY) ?? ""; }
+export function isDemoLocation(): boolean {
+  return location.pathname === "/demo" || new URLSearchParams(location.search).get("demo") === "1";
+}
+
+export function getLicenseToken(): string {
+  if (isDemoLocation()) return "";
+  return localStorage.getItem(TOKEN_KEY) ?? "";
+}
 export function hasCachedLicense(): boolean {
   try { return Boolean(getLicenseToken()) && (JSON.parse(localStorage.getItem(VERDICT_KEY) ?? "null") as Verdict | null)?.valid === true; }
   catch { return false; }
 }
 
 export function captureReturnedLicense(): void {
+  if (isDemoLocation()) return;
   const url = new URL(location.href);
   const token = url.searchParams.get("license");
   if (!token) return;
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.removeItem(VERDICT_KEY);
   url.searchParams.delete("license");
-  history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 export async function verifyLicense(force = false): Promise<boolean> {
+  if (isDemoLocation()) return false;
   const token = getLicenseToken();
   if (!token) return false;
   try {
@@ -31,15 +40,18 @@ export async function verifyLicense(force = false): Promise<boolean> {
   try {
     const response = await fetch(`${BILLING_BASE}/products/${PRODUCT_SLUG}/verify?license=${encodeURIComponent(token)}`);
     const result = await response.json() as { valid?: boolean };
+    if (isDemoLocation()) return false;
     const verdict = { valid: result.valid === true, checkedAt: Date.now() };
     localStorage.setItem(VERDICT_KEY, JSON.stringify(verdict));
     return verdict.valid;
   } catch {
+    if (isDemoLocation()) return false;
     return hasCachedLicense();
   }
 }
 
 export async function restoreLicense(token: string): Promise<boolean> {
+  if (isDemoLocation()) return false;
   localStorage.setItem(TOKEN_KEY, token.trim());
   localStorage.removeItem(VERDICT_KEY);
   const valid = await verifyLicense(true);
