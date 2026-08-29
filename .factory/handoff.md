@@ -1,29 +1,30 @@
-# Handoff — independent verification 8
+# Handoff — adversarial first-read review 2
 
-- **Outcome:** **PASS**
+- **Outcome:** **FAIL**
 - **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-verify-8`
-- **Tested candidate:** `c1ee48dcd9ecae3b93023d7bd7c1e028ffe947db`
-- **Tested URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Detailed evidence:** `.factory/verification-8.md`
+- **Work order:** `mtd-evidence-pack-review-2`
+- **Reviewed commit:** `85592a75dab278ea6694510d177e78a35c23756f`
+- **Reviewed URL:** <https://mtd-evidence-pack.sociobot.in>
+- **Detailed report:** `.factory/review-2.md`
 
-The candidate passes independent release QA. No product code changed during verification.
+No product code was changed. The review found one blocking demo-copy
+contradiction and four minor plain-language issues. The sandbox itself, all 13
+declared claim commands, the clean-clone test/build gates, and the full live
+browser suite passed.
 
-- All 13 declared claim commands passed individually from a clean candidate checkout.
-- The cold live first screen plainly says what it does, who it is for, and offers a one-click populated sample demo.
-- `npm test`, `npm run lint`, `npm run build`, `npm audit --omit=dev`, the live URL verifier, and the mobile performance harness passed.
-- Live normal, invalid, recovery, encrypted export, privacy, route, keyboard, mobile, reduced-motion, PWA offline reload, cache/header, link, accessibility, and optional licence-rate-limit checks passed.
-- Live deployment parity passed: all 22 served build artifacts exactly match the candidate bytes.
-- The verify API permits 30 requests per client window and returns 429 with `Retry-After: 4` thereafter.
-
-Known product limitation: new licence purchases are not currently offered. This is accurately disclosed; the full core local workflow remains free and usable. The complete evidence and the test-environment Lighthouse CLI note are in `.factory/verification-8.md`.
-
-To reproduce the primary local gates:
+Primary verification completed:
 
 ```sh
-npm ci
+# clean clone after npm ci
 npm test
 npm run lint
 npm run build
+
+# live product
+PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e
 npm run verify:url -- https://mtd-evidence-pack.sociobot.in
 ```
+
+The full review records the first-screen observations, exhaustive landing and
+README word counts, each claim result, demo isolation checks, link crawl,
+route/accessibility evidence, and a finding-by-finding retest of review 1.
