@@ -21,18 +21,35 @@ let initialRouteOpened = (window as typeof window & { __mtdClientNavigation?: bo
 
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 const money = (value: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(value);
-const titleFor = (path: string) => ({
-  "/": "MTD Evidence Pack — prepare a quarterly handoff",
-  "/demo": "Demo — MTD Evidence Pack",
-  "/workspace": "Workspace — MTD Evidence Pack",
-  "/privacy": "Privacy — MTD Evidence Pack",
-  "/terms": "Terms — MTD Evidence Pack"
-}[path] ?? "Page not found — MTD Evidence Pack");
+const isDemoRoute = () => location.pathname === "/demo" || new URLSearchParams(location.search).get("demo") === "1";
+const metadataFor = (path: string) => isDemoRoute() ? {
+  title: "Demo — MTD Evidence Pack",
+  description: "Try one sample bookkeeping quarter. Sample changes are not saved."
+} : ({
+  "/": { title: "MTD Evidence Pack — prepare a quarterly handoff", description: "Import bookkeeping CSV records, check the quarter and export an encrypted evidence pack for your accountant or filing software." },
+  "/workspace": { title: "Workspace — MTD Evidence Pack", description: "Prepare a local quarterly evidence pack from bookkeeping records and source files." },
+  "/privacy": { title: "Privacy — MTD Evidence Pack", description: "Learn how MTD Evidence Pack stores local browser data and licence details." },
+  "/terms": { title: "Terms — MTD Evidence Pack", description: "Read the terms for using MTD Evidence Pack to organise local records." }
+}[path] ?? { title: "Page not found — MTD Evidence Pack", description: "The requested MTD Evidence Pack page could not be found." });
 
 function setRouteMetadata(path: string): void {
-  document.title = titleFor(path);
+  const metadata = metadataFor(path);
+  document.title = metadata.title;
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (canonical) canonical.href = `https://mtd-evidence-pack.sociobot.in${path === "/" ? "/" : path}`;
+  const canonicalPath = isDemoRoute() ? "/demo" : path;
+  if (canonical) canonical.href = `https://mtd-evidence-pack.sociobot.in${canonicalPath === "/" ? "/" : canonicalPath}`;
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+  if (description) description.content = metadata.description;
+  for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) {
+    const element = document.querySelector<HTMLMetaElement>(selector);
+    if (element) element.content = metadata.title;
+  }
+  for (const selector of ['meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+    const element = document.querySelector<HTMLMetaElement>(selector);
+    if (element) element.content = metadata.description;
+  }
+  const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]');
+  if (ogUrl) ogUrl.content = `https://mtd-evidence-pack.sociobot.in${canonicalPath}`;
 }
 
 function navigate(path: string, replace = false): void {
@@ -53,7 +70,7 @@ function header(): string {
 }
 
 function footer(): string {
-  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.6 · Generated art disclosed</p></footer>`;
+  return `<footer class="site-footer"><p>Prepare a quarterly evidence handoff on your device.</p><nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav><p class="build-id">v1.0.7 · Generated art disclosed</p></footer>`;
 }
 
 function shell(content: string, banner = ""): string {
@@ -70,17 +87,17 @@ function landingPage(): string {
       <p class="eyebrow">Local quarterly record check</p>
       <h1>Prepare your quarterly evidence handoff</h1>
       <p class="lede">For UK sole traders who keep local books and need a clear pack for an accountant or filing software.</p>
-      <div class="hero-action"><a class="button primary" href="/demo" data-link>Try it with sample data</a><span>Loads one sample quarter. Nothing is saved.</span></div>
+      <div class="hero-action"><a class="button primary" href="/?demo=1" data-link>Try it with sample data</a><span>Loads one sample quarter. Nothing is saved.</span></div>
       <ul class="plain-facts" aria-label="Product facts"><li>Works after your first visit</li><li>Records stay on this device</li><li>Core pack export is free</li></ul>
     </div>
-    <figure class="hero-art paper-rise"><picture><source media="(max-width: 700px)" srcset="/assets/hero-ledger-390.webp"><img src="/assets/hero-ledger.webp" width="1280" height="853" alt="Four paper filing houses connected by a coral path under a paper moon." fetchpriority="high" decoding="async"></picture><figcaption>Four quarters. One traceable path through the source records.</figcaption></figure>
+    <figure class="hero-art paper-rise"><picture><source media="(max-width: 700px)" srcset="/assets/hero-ledger-390.webp"><img src="/assets/hero-ledger.webp" width="1280" height="853" alt="Four paper filing houses connected by a coral path under a paper moon." fetchpriority="high" decoding="async"></picture><figcaption>Keep source files with the records for one selected quarter.</figcaption></figure>
   </section>
-  <section class="preview-section" aria-labelledby="preview-title"><div class="section-number">Field note 01</div><div><p class="eyebrow">The product itself</p><h2 id="preview-title">See what is missing before handoff</h2><p>The checklist and records stay beside each other. Open items remain named.</p></div>
+  <section class="preview-section" aria-labelledby="preview-title"><div class="section-number">Readiness preview</div><div><h2 id="preview-title">See what is missing before handoff</h2><p>The checklist and records stay beside each other. Open items remain named.</p></div>
     <div class="mini-workspace"><div class="mini-head"><strong>Quarter 1 · 2026–27</strong><span>6 of 7 checked</span></div><div class="mini-grid"><div><span class="large-number">12</span><span>bookkeeping records</span></div><div><span class="large-number">3</span><span>source files</span></div><div class="open-item"><span aria-hidden="true">○</span><span>Invoices and receipts can be matched to records</span></div></div></div>
   </section>
   <section class="steps" aria-labelledby="steps-title"><p class="eyebrow">How it works</p><h2 id="steps-title">Build the pack in three passes</h2><ol><li><span>01</span><div><h3>Set the period</h3><p>Name the quarter and check its start and end dates.</p></div></li><li><span>02</span><div><h3>Import and match</h3><p>Add a categorised CSV. Attach statements, invoices, receipts, or an index.</p></div></li><li><span>03</span><div><h3>Check and export</h3><p>Close each checklist item. Download one password-protected ZIP with CSV, PDF, files, and hashes.</p></div></li></ol></section>
-  <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">A boundary, kept clear</p><h2 id="limits-title">Prepare records for the next handoff</h2></div><p>Use compatible filing software or an accountant when you are ready to submit. Confirm checklist changes with them.</p></section>
-  <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Supported edition</p><h2 id="licence-title">Keep the core pack free</h2><p>Import records, maintain your checklist, and export the encrypted pack without paying.</p></div><div class="price-ticket"><h3>Restore a licence</h3><p>Existing licence holders can restore saved cover notes. New purchases are not offered while checkout is unavailable.</p><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></div></section>`, "");
+  <section class="limits night-section" aria-labelledby="limits-title"><div><p class="eyebrow">What this tool does not do</p><h2 id="limits-title">Prepare records for the next handoff</h2></div><p>It does not submit tax returns. Use compatible filing software or an accountant when you are ready to submit.</p></section>
+  <section class="pricing" aria-labelledby="licence-title"><div><p class="eyebrow">Supported edition</p><h2 id="licence-title">Keep the core pack free</h2><p>Import records, maintain your checklist, and export the encrypted pack without paying.</p></div><div class="price-ticket"><h3>Restore a licence</h3><p>Existing licence holders can restore saved cover notes. New licences are not currently available.</p><form data-form="restore-license" class="restore-form"><label for="landing-license">Paste your licence</label><input id="landing-license" name="license" autocomplete="off" required><button class="button small" type="submit" aria-label="Verify licence">Verify licence</button></form></div></section>`, "");
 }
 
 function overview(workspace: Workspace): string {
@@ -114,7 +131,7 @@ function workspacePage(): string {
 
 function privacyPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Plain-language policy · 29 August 2026</p><h1>Understand your browser data</h1><p>MTD Evidence Pack works in your browser. The demo uses sample data. Review the data controls in your browser before using the workspace with your own records.</p><h2>Manage local data</h2><p>Use “Delete local data” in the workspace to remove its local record. Browser site-data settings can also remove local workspace data. Exported ZIP files are outside the browser and remain yours to manage.</p><h2>Licence checks</h2><p>Restoring a supported-edition licence sends its token to Sociobot. The browser stores the token and its daily verification result.</p><h2>Contact</h2><p>Questions can be sent to <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></article>`); }
 
-function termsPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Terms · 29 August 2026</p><h1>Use this tool to organise records</h1><p>MTD Evidence Pack helps you prepare a local evidence handoff. Obtain suitable advice and use compatible software or an authorised person where needed.</p><h2>Your responsibility</h2><p>Check dates, categories, records, and checklist items before handoff. Keep original records. Use compatible software or an authorised person for any required submission.</p><h2>Supported edition</h2><p>A verified existing licence enables saved cover notes. An expired or revoked licence stops that feature. New purchases are not currently offered. The core export remains available.</p><h2>Availability and liability</h2><p>The tool is provided without a promise that it fits every tax situation. To the extent allowed by law, we are not liable for tax decisions, missed deadlines, or lost local data.</p><h2>Fair use</h2><p>Do not attempt to disrupt the service or use it for unlawful records.</p></article>`); }
+function termsPage(): string { return shell(`<article class="legal-page"><p class="eyebrow">Terms · 29 August 2026</p><h1>Use this tool to organise records</h1><p>MTD Evidence Pack helps you prepare a local evidence handoff. Obtain suitable advice and use compatible software or an authorised person where needed.</p><h2>Your responsibility</h2><p>Check dates, categories, records, and checklist items before handoff. Keep original records. Use compatible software or an authorised person for any required submission.</p><h2>Supported edition</h2><p>A verified existing licence enables saved cover notes. An expired or revoked licence stops that feature. New licences are not currently available. The core export remains available.</p><h2>Availability and liability</h2><p>The tool is provided without a promise that it fits every tax situation. To the extent allowed by law, we are not liable for tax decisions, missed deadlines, or lost local data.</p><h2>Fair use</h2><p>Do not attempt to disrupt the service or use it for unlawful records.</p></article>`); }
 
 function notFoundPage(): string { return shell(`<section class="not-found"><div class="lost-moon" aria-hidden="true"></div><p class="eyebrow">404 · Misfiled page</p><h1>This page is not in the pack</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-link>Return to the home page</a></section>`); }
 
@@ -137,7 +154,7 @@ function announceRoute(): void {
 async function openRoute(): Promise<void> {
   const path = location.pathname;
   const wasDemo = demoMode;
-  demoMode = path === "/demo";
+  demoMode = isDemoRoute();
   if (wasDemo && !demoMode) loaded = false;
   statusMessage = ""; errorMessage = "";
   if (demoMode) { workspace = sampleWorkspace(); loaded = true; }
@@ -154,7 +171,7 @@ async function openRoute(): Promise<void> {
 
 function render(): void {
   const path = location.pathname;
-  app.innerHTML = path === "/" ? landingPage() : path === "/demo" || path === "/workspace" ? workspacePage() : path === "/privacy" ? privacyPage() : path === "/terms" ? termsPage() : notFoundPage();
+  app.innerHTML = isDemoRoute() ? workspacePage() : path === "/" ? landingPage() : path === "/workspace" ? workspacePage() : path === "/privacy" ? privacyPage() : path === "/terms" ? termsPage() : notFoundPage();
 }
 
 app.addEventListener("click", event => {

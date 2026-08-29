@@ -82,5 +82,12 @@
     "where": "pricing and workspace",
     "test": "npm run test:e2e -- --grep @claim:paid-license",
     "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts the cover-note field is enabled"
+  },
+  {
+    "id": "checkout-unavailable",
+    "claim": "New licences are not currently available",
+    "where": "landing pricing card and README",
+    "test": "npm run test:e2e -- --grep @claim:checkout-unavailable",
+    "sandbox": "fresh browser context visits every public product route and asserts there is no price, checkout URL, or purchase action while licence restore remains available"
   }
 ]

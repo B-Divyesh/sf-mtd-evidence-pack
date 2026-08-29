@@ -36,4 +36,4 @@ const loadApplicationForNavigation = (event: MouseEvent): void => {
   void import("./app");
 };
 root.addEventListener("click", loadApplicationForNavigation);
-if (location.pathname !== "/") void import("./app");
+if (location.pathname !== "/" || new URLSearchParams(location.search).get("demo") === "1") void import("./app");

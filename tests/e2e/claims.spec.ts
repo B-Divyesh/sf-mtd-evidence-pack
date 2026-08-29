@@ -4,7 +4,9 @@ import { readFile } from "node:fs/promises";
 import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
 
 test("@claim:demo-sandbox sample changes are not saved", async ({ page }) => {
-  await page.goto("/demo");
+  await page.goto("/?demo=1");
+  await expect(page).toHaveURL("/?demo=1");
+  await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
   const first = page.locator('[data-check="sales"]');
   await expect(first).toBeChecked();
   await first.uncheck();
@@ -162,9 +164,9 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.6");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.7");
   await expect.poll(() => page.evaluate(async () => {
-    const cache = await caches.open("mtd-evidence-pack-v1.0.6");
+    const cache = await caches.open("mtd-evidence-pack-v1.0.7");
     const manifestResponse = await cache.match("/asset-manifest.json");
     if (!manifestResponse) return false;
     const manifest = await manifestResponse.json() as Record<string, { file: string; css?: string[]; assets?: string[] }>;
@@ -186,8 +188,8 @@ test("@claim:offline-reload completes a sample encrypted export offline after on
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.6");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.6");
+  await expect(page.locator(".build-id")).toContainText("v1.0.7");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.7");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -221,7 +223,7 @@ test("@claim:paid-license a verified licence enables saved cover notes", async (
   await expect(page.locator("#cover-note")).toBeEnabled();
 });
 
-test("unavailable checkout is not advertised while existing licence restore remains available", async ({ page }) => {
+test("@claim:checkout-unavailable new licences are not offered while existing licence restore remains available", async ({ page }) => {
   for (const path of ["/", "/demo", "/workspace", "/privacy", "/terms"]) {
     await page.goto(path);
     await expect(page.locator('a[href*="/checkout"]'), path).toHaveCount(0);
@@ -233,6 +235,7 @@ test("unavailable checkout is not advertised while existing licence restore rema
   const readme = await readFile(new URL("../../README.md", import.meta.url), "utf8");
   expect(readme).not.toContain("/checkout");
   expect(readme).not.toContain("£24");
+  expect(readme).toContain("New licences are not currently available.");
 });
 
 test("@claim:readiness names every open checklist item before export", async ({ page }) => {
@@ -249,7 +252,7 @@ test("@claim:standalone-install supplies a standalone PWA manifest", async ({ pa
     display: string; start_url: string; icons: Array<{ sizes: string; purpose?: string }>;
   });
   expect(manifest.display).toBe("standalone");
-  expect(manifest.start_url).toBe("/?v=1.0.6");
+  expect(manifest.start_url).toBe("/?v=1.0.7");
   expect(manifest.icons).toEqual(expect.arrayContaining([
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "any maskable" })
@@ -336,6 +339,13 @@ test("static-host routing keeps product paths and returns the designed 404 page 
   expect(config.responseOverrides?.["404"]?.rewrite).toBe("/404.html");
   const missing = await readFile(new URL("../../public/404.html", import.meta.url), "utf8");
   expect(missing).toContain("This page is not in the pack");
+  expect(missing).toContain('meta name="description"');
+  expect(missing).toContain('rel="canonical"');
+  expect(missing).toContain('property="og:title"');
+  expect(missing).toContain('name="twitter:card"');
+  expect(missing).toContain('href="/workspace"');
+  expect(missing).toContain('href="/privacy"');
+  expect(missing).toContain('href="/terms"');
 });
 
 test("all product routes have no serious accessibility violations", async ({ page }) => {

@@ -1,6 +1,6 @@
 # Demo sandbox
 
-Open `/demo` or `https://mtd-evidence-pack.sociobot.in/demo`.
+Open `/?demo=1` or `https://mtd-evidence-pack.sociobot.in/?demo=1`. `/demo` is also a direct sample route.
 
 The demo starts with Rowan Field Studio’s Quarter 1 for 2026–27. It contains 12 categorised bookkeeping records, three text evidence indexes, six completed checklist items, one open item, and a cover note.
 
