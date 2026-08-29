@@ -82,8 +82,29 @@ Results:
 
 ## Deployment and live identity
 
-Deployment and post-deploy identity evidence will be added after the repair
-commit is pushed and uploaded with the work order's static deployment script.
+- Repair commit `2701b19` was pushed to `origin/main`.
+- `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist` completed
+  successfully. Azure deployment ID:
+  `3e6ef189-b70e-4ed4-ad69-bba91eb2d10c`.
+- `https://mtd-evidence-pack.sociobot.in` serves version 1.0.6. The complete
+  live Playwright suite passes 24/24. Live throttled performance measured
+  652 ms LCP, 24 ms interaction, 2,095 bytes initial JS, and 5,380 bytes CSS.
+- The live URL verifier passes with no console errors. The home route returns
+  HTTP 200; an unknown route returns HTTP 404 with the designed recovery page.
+- Live CSP, HSTS, `nosniff`, strict-origin referrer policy, restrictive
+  permissions policy, and response-header-only `frame-ancestors 'none'` are
+  present. Hashed JavaScript responds with one-year immutable caching.
+- Live Lighthouse 12.8.2 mobile: 100 performance, 100 accessibility, 100 best
+  practices, 100 SEO; LCP 921 ms, TBT 12 ms, CLS 0, transfer 67,761 bytes.
+- SHA-256 parity passes for all 26 publicly served `dist/` artifacts; only the
+  host-only `staticwebapp.config.json` is excluded. The live entry files are
+  `index-T7O3gvkj.js`, `index-B5CHlQ6U.css`, and `app-D-q3ugE5.js`.
+- All discovered local and external page links return HTTP 200. The full live
+  workflow makes only same-origin requests unless a user explicitly restores
+  a licence.
+- The live invalid-licence endpoint returns 200 with `reason: "invalid"`.
+  A fresh 35-request allowance check returned 200 for requests 1–30 and 429
+  for requests 31–35 with `Retry-After: 3` on the first limited response.
 
 ## Known gap and operator action
 
