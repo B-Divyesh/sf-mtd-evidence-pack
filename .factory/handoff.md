@@ -38,10 +38,10 @@ The request-log claim permits only the product origin during demo-to-real CSV im
 
 ## Deployment verification
 
-- Deployed with `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist`; Azure Static Web Apps deployment `6581f7c8-1c87-49bf-b434-9dadd2c536d7` succeeded. The configured custom domain returned HTTP 200.
-- Live identity matched the rebuilt entry asset: `/assets/index-BF0gKOi3.js`.
+- Deployed with `/opt/fleet/lib/deploy-static.sh mtd-evidence-pack /work/repo/dist`; final Azure Static Web Apps deployment `d86e9b4c-8464-4991-9649-41c5ab8dfad9` succeeded. The configured custom domain returned HTTP 200.
+- Live identity matched the rebuilt entry asset: `/assets/index-BF0gKOi3.js` (SHA-256 `46070b6891b2d6b17c979fb01c1425d2bfdd961596d7435d0a62eedefbaa93bf`).
 - Live `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` passed with no browser console errors.
-- Live `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e` passed all 18 tests. Its 4×-CPU 390px check measured 75 ms total blocking time (<= 200 ms); the live real unlicensed checklist regression passed.
+- Live `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e` passed all 18 tests. The final 4×-CPU 390px check measured 44 ms total blocking time (<= 200 ms); the live real unlicensed checklist regression passed.
 - The deployed `/assets/export-C8KSyxfA.js` response returns `Cache-Control: public, max-age=31536000, immutable`.
 
 ## Known gaps
