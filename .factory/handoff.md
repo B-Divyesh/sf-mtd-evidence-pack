@@ -1,40 +1,52 @@
-# Adversarial review 4 handoff — FAIL
++# MTD Evidence Pack — polish round 4 handoff
 
 - **Date:** 29 August 2026
-- **Work order:** `mtd-evidence-pack-review-4`
-- **Reviewed commit:** `66778d5e7fb4206fc282f42e8e069cc749dbdfbf`
+- **Work order:** `mtd-evidence-pack-polish-4`
+- **Base:** `f659d21cb61e0b41fcc144765e967ed2422676fc`
+- **Repair commit:** `232ff179153a6b44cb93ba12553365d3eb0fbe9b`
+- **Deployment:** `ce39b6d1-e075-4edc-baa6-fe394f7dd101`
 - **Live URL:** <https://mtd-evidence-pack.sociobot.in>
-- **Decision:** **FAIL**
+- **Result:** PASS — every finding in reviews 1–4 is fixed and retested.
 
-This review changed no product code. It added `.factory/review-4.md` and
-replaced this handoff with the round-four result.
+## What changed
 
-## Verification performed
+Demo mode is now selected before any licence code runs. Both `/?demo=1` and `/demo` ignore licence query values and do not touch the real licence or IndexedDB namespaces. **Start for real** is the first point that loads real workspace and licence state.
 
-- Fresh mobile and desktop cold reads at 390 × 844 and 1440 × 900.
-- One-click sample, Reset, sticky banner, demo-to-real workspace isolation,
-  offline/privacy request logging, and live route checks.
-- Every one of the 16 exact commands in `.factory/claims.json` from clean clone
-  `/tmp/mtd-review4.GYfJKD`; all passed.
-- Clean-clone `npm test` (9 unit and 36 browser tests), `npm run build`, and
-  `npm run lint`; all passed.
-- Live 36-test Playwright suite and `npm run verify:url`; both passed.
-- Live metadata, headers, dead-link crawl, History API focus/announcement,
-  Back/Forward scroll, 404, 200% text, mobile overflow, and Playwright Axe
-  checks.
-- All earlier review, polish, and handoff findings retested against live and
-  source.
+History entries now retain their own scroll coordinates. Back and Forward restore exact positions after rendering, keep the new h1 focused without moving the page, and announce the route.
 
-## Known gaps
+The first-screen offline fact now names offline use. User copy explains file-change checks, Privacy controls, and browser installation in plain words. The static and in-app 404s use direct error language. The static 404 also shares the paper-moon wordmark, live network status, local favicon, apple-touch icon, manifest, legal links, metadata, and footer.
 
-The complete evidence and exact fixes are in `.factory/review-4.md`. Two
-findings are blocking:
+Release references are `v1.0.11`. The catalog description is verb-first and 106 characters excluding its newline. The paper-moon ledger visual system, original artwork, static PWA class, and local-first product scope are unchanged.
 
-1. A cold demo reads the real licence key; `/?demo=1` can verify it and write a
-   real verdict while saying nothing is saved.
-2. Browser Back returns to the right route and h1 but loses the previous
-   scroll position.
+## How it was verified
 
-Eight minor copy and route-contract findings remain: the offline fact is
-vague, two README phrases and the hash description use jargon, the 404 has
-three metaphor/mood lines, and its static metadata omits the apple-touch icon.
+From clean clone `/tmp/mtd-polish4-clean.ZrakjB` at `232ff17`:
+
+- `npm ci` — PASS, zero vulnerabilities.
+- All 16 exact commands in `.factory/claims.json`, run separately — PASS.
+- `npm test` — PASS, 9 unit tests and 38 browser tests.
+- `npm run build` — PASS; `dist/index.html` produced.
+- `npm run lint` — PASS.
+- `npm audit --omit=dev` — PASS.
+- Repository and worker URL verifiers — PASS.
+
+Before deployment, the configured `npm ci && npm test && npm run build` command passed again. The production suite then passed all 38 browser tests against the live URL. Playwright Axe reported no serious or critical issues on landing, demo, workspace, Privacy, Terms, and 404. Mobile, keyboard, focus, 200% text, reduced-motion, privacy, offline, PWA cache, and encrypted export checks passed.
+
+Performance evidence:
+
+- Browser budget test: 588 ms live mobile LCP, 32 ms longest interaction, 2,269 B initial JavaScript transfer, 5,421 B CSS transfer.
+- Build: 2.01 kB gzip initial JavaScript; 4.96 kB gzip CSS.
+- Live Lighthouse: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 0.9 s, CLS 0, TBT 60 ms.
+- Reports and reviewed screenshots: `.factory/polish-evidence-4/`.
+
+Routing evidence:
+
+- `/`, `/demo`, `/workspace`, `/privacy`, and `/terms` returned 200.
+- The unknown-route check returned the designed page with HTTP 404.
+- Robots, sitemap, manifest, favicon, and apple-touch icon returned 200.
+- Back restored landing `scrollY=813`; Forward restored demo `scrollY=1024`; each route h1 held focus.
+- The URL verifier found no console errors, missing title/language/main/image alternative, or unnamed button.
+
+## Known gaps and next steps
+
+None. No finding or deferred task remains.
