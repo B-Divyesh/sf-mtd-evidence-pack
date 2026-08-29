@@ -25,7 +25,7 @@ Every finding in `.factory/review-1.md` and `.factory/review-2.md` was retested.
 
 ## Acceptance evidence
 
-- Clean clone `/tmp/mtd-polish2-clean.WF7cgR` at `c82cdc2`: `npm ci`, `npm run build`, `npm run lint`, `npm test`, all 13 exact commands from `.factory/claims.json`, and `npm audit --omit=dev` passed. The full suite reported 9 unit and 27 browser tests.
+- Final clean clone `/tmp/mtd-polish2-final.59Rkcs` at `d85e8a2`: `npm ci`, `npm run build`, `npm run lint`, `npm test`, all 13 exact commands from `.factory/claims.json`, and `npm audit --omit=dev` passed. The full suite reported 9 unit and 27 browser tests.
 - Every claim id occurs in exactly one tagged browser test, enforced by `claim contract declares each claim tag exactly once`.
 - Live `PLAYWRIGHT_BASE_URL=https://mtd-evidence-pack.sociobot.in npm run test:e2e` passed 27 tests. `npm run verify:url -- https://mtd-evidence-pack.sociobot.in` passed.
 - Live cold route checks returned 200 for `/`, `/demo`, `/workspace`, `/privacy`, and `/terms`; the designed unknown route returned 404. Every route had one h1, one main, its title, description, canonical and social metadata. All crawled links returned 200.

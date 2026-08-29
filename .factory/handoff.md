@@ -22,7 +22,7 @@ The paper-moon ledger identity, original illustration, local-first PWA class, an
 
 ## Verification
 
-From clean clone `/tmp/mtd-polish2-clean.WF7cgR` at `c82cdc2`:
+From final clean clone `/tmp/mtd-polish2-final.59Rkcs` at `d85e8a2`:
 
 ```sh
 npm ci                         # pass; 0 vulnerabilities
