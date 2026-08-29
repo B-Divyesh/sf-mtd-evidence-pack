@@ -40,7 +40,7 @@ The signature motion is a 420ms paper-rise: hero layers and newly imported recor
 
 ## Asset plan and provenance
 
-- `hero-ledger.webp`: original landscape illustration generated for the first screen. A surreal paper moon lights four document houses across an indigo accounting landscape. No people, text, brands, insignia, or official symbols.
+- `hero-ledger.webp`: original landscape illustration generated for the first screen. A surreal paper moon lights four document houses across an indigo accounting landscape. No people, text, brands, insignia, or official symbols. `hero-ledger-720.webp` and `hero-ledger-390.webp` are local WebP derivatives of that original for responsive first-screen delivery; the 390px, 4.9 KB variant avoids decoding a larger image on the mobile critical path.
 - `social-card.webp`: a 1200×630 crop composed from the same original art, with live HTML metadata supplying all readable words.
 - Favicon: hand-authored SVG paper-moon mark. PWA icons are square crops of the original paper-moon scene, rasterised locally.
 

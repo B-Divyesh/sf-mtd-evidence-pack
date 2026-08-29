@@ -30,7 +30,7 @@ The app shell and sample work after the first visit. Install it from a supportin
 
 ## Supported edition
 
-The core import, checklist, attachments, and encrypted export are free. Existing licence holders can restore saved cover notes and custom checklist items. Licence verification uses the Sociobot billing API.
+The core import, checklist maintenance, attachments, and encrypted export are free. Existing licence holders can restore saved cover notes. Licence verification uses the Sociobot billing API.
 
 ## Develop
 

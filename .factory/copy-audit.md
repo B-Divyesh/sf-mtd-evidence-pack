@@ -31,9 +31,9 @@ Audited 28 August 2026. Counts treat hyphenated terms as one word. No line excee
 | Use compatible filing software or an accountant when you are ready to submit. | 13 | — |
 | Confirm checklist changes with them. | 5 | — |
 | Keep the core pack free | 5 | — |
-| Import records, check the quarter, and export the encrypted pack without paying. | 11 | — |
+| Import records, maintain your checklist, and export the encrypted pack without paying. | 10 | — |
 | Restore an existing licence | 4 | — |
-| A verified licence adds saved cover notes and custom checklist items. | 10 | — |
+| A verified licence adds saved cover notes. | 6 | — |
 | Paste your licence | 3 | — |
 | Verify licence | 2 | — |
 

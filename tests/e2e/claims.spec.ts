@@ -131,7 +131,7 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
     await registration.update();
   });
-  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.3");
+  expect(await page.evaluate(() => caches.keys())).toContain("mtd-evidence-pack-v1.0.4");
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "Prepare this quarter’s evidence pack" })).toBeVisible();
@@ -140,8 +140,8 @@ test("@claim:offline-reload opens the sample workspace offline after one visit",
 
 test("service worker updates are announced", async ({ page }) => {
   await page.goto("/demo");
-  await expect(page.locator(".build-id")).toContainText("v1.0.3");
-  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.3");
+  await expect(page.locator(".build-id")).toContainText("v1.0.4");
+  await expect.poll(() => page.evaluate(async () => (await (await fetch("/manifest.webmanifest")).json()).start_url)).toBe("/?v=1.0.4");
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
@@ -150,7 +150,19 @@ test("service worker updates are announced", async ({ page }) => {
   await expect(page.locator(".live-region")).toContainText("An update is installing. It will be ready on the next page.");
 });
 
-test("@claim:paid-license a verified licence adds custom checks and cover notes", async ({ page }) => {
+test("@claim:custom-checklist an unlicensed real workspace saves a user-maintained checklist", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Start for real" }).click();
+  await expect(page.locator("#custom-check")).toBeEnabled();
+  await page.locator("#custom-check").fill("Confirm mileage log agrees with records");
+  await page.getByRole("button", { name: "Add check" }).click();
+  await expect(page.getByText("Confirm mileage log agrees with records", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Confirm mileage log agrees with records", { exact: true })).toBeVisible();
+  await expect(page.locator("#cover-note")).toBeDisabled();
+});
+
+test("@claim:paid-license a verified licence enables saved cover notes", async ({ page }) => {
   await page.route("https://api.sociobot.in/**", route => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ valid: true, reason: "ok" }) }));
   await page.goto("/demo");
   await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
@@ -198,11 +210,12 @@ test("@performance mobile landing keeps blocking work within 200ms", async ({ pa
     const imageElement = element.querySelector("img")!;
     const image = getComputedStyle(imageElement);
     const bounds = imageElement.getBoundingClientRect();
-    return { animation: art.animationName, clipPath: image.clipPath, aspectRatio: bounds.width / bounds.height };
+    return { animation: art.animationName, clipPath: image.clipPath, aspectRatio: bounds.width / bounds.height, source: imageElement.currentSrc };
   });
   expect(heroTreatment.animation).toBe("none");
   expect(heroTreatment.clipPath).toBe("none");
   expect(heroTreatment.aspectRatio).toBeCloseTo(1.5, 1);
+  expect(heroTreatment.source).toContain("hero-ledger-390.webp");
   const metrics = await page.evaluate(() => {
     const values = window as typeof window & { __totalBlockingTime: number; __longTasks: number[] };
     return { blockingTime: Math.round(values.__totalBlockingTime), longTasks: values.__longTasks };
@@ -210,6 +223,14 @@ test("@performance mobile landing keeps blocking work within 200ms", async ({ pa
   console.info(`Mobile blocking time: ${metrics.blockingTime} ms; long tasks: ${metrics.longTasks.join(", ") || "none"}`);
   expect(metrics.blockingTime).toBeLessThanOrEqual(200);
   await session.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+});
+
+test("all built assets receive the immutable cache policy", async () => {
+  const config = JSON.parse(await readFile(new URL("../../public/staticwebapp.config.json", import.meta.url), "utf8")) as {
+    routes: Array<{ route: string; headers?: Record<string, string> }>;
+  };
+  const assets = config.routes.find(route => route.route === "/assets/*");
+  expect(assets?.headers?.["Cache-Control"]).toBe("public, max-age=31536000, immutable");
 });
 
 test("all product routes have no serious accessibility violations", async ({ page }) => {

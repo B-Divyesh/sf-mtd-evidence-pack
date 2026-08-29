@@ -49,10 +49,17 @@
     "sandbox": "fresh browser context at /demo; wait for service worker, go offline, reload, and assert sample records"
   },
   {
+    "id": "custom-checklist",
+    "claim": "Maintains a user-defined period checklist",
+    "where": "workspace and README",
+    "test": "npm run test:e2e -- --grep @claim:custom-checklist",
+    "sandbox": "fresh browser context at /demo; start a real unlicensed workspace, add a custom check, reload, and assert it remains"
+  },
+  {
     "id": "paid-license",
-    "claim": "A verified licence adds custom checks and saved cover notes",
+    "claim": "A verified licence enables saved cover notes",
     "where": "pricing and workspace",
     "test": "npm run test:e2e -- --grep @claim:paid-license",
-    "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts both paid fields are enabled"
+    "sandbox": "fresh context starts at /demo, enters the real workspace with a recorded valid verify response, and asserts the cover-note field is enabled"
   }
 ]
